@@ -1,13 +1,15 @@
 # Global OpenCode Instructions
 
-Use global rules as baseline and project files as overrides.
+Use the consolidated master baseline and flattened local context.
 
 Load order:
-1. `.ai_ops/global/rules/*.md`
-2. `.ai_ops/global/workflows/*.md`
-3. `.ai_ops/project/project-opencode.md`
+1. `.ai_ops/global/global-MASTER.md`
+2. `.ai_ops/overrides/local-context.md`
+3. `.agent/rules/global/*.md`
 4. `.agent/rules/project/*.md`
-5. `.agent/workflows/project/*.md`
-6. `.agent/skills/project/**/SKILL.md`
+5. `.agent/workflows/global/*.md`
+6. `.agent/workflows/project/*.md`
+7. `.agent/skills/global/**/SKILL.md`
+8. `.agent/skills/project/**/SKILL.md`
 
 Project-local policy overrides global policy on conflict.

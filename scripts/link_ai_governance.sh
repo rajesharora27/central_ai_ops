@@ -7,7 +7,8 @@ Usage: scripts/link_ai_governance.sh [--source PATH] [--project PATH ...] [--pro
 
 Sets up a layered AI governance model:
 - Global baseline from central repo (`.ai_ops/global`)
-- Project overrides stored in project repo (`.ai_ops/project/<project>` + `.agent/*/project`)
+- Flattened project-local business context (`.ai_ops/overrides/local-context.md`)
+- Project runtime rules/workflows/skills (`.agent/*/project`)
 
 Options:
   --source, -s   Path to central_ai_ops repo root (defaults to this script's repo)
@@ -15,8 +16,8 @@ Options:
   --env, -e      Backward-compatible alias for --project
   --project-source
                  Optional canonical project repo for project-local overrides.
-                 When set, project-local files are linked from this source so
-                 local overrides are edited in one place across IDE clones.
+                 When set, `.ai_ops/overrides` and `.agent/*/project` are linked
+                 from this source so local overrides are edited in one place.
   --force        Replace conflicting links/files where safe (does not overwrite project override files)
   --help, -h     Show this help
 
@@ -75,6 +76,10 @@ if [[ ! -d "$SOURCE_ROOT_REAL/global" ]]; then
   echo "Missing global directory in source root: $SOURCE_ROOT_REAL/global" >&2
   exit 1
 fi
+if [[ ! -f "$SOURCE_ROOT_REAL/global/global-MASTER.md" ]]; then
+  echo "Missing consolidated baseline: $SOURCE_ROOT_REAL/global/global-MASTER.md" >&2
+  exit 1
+fi
 
 PROJECT_SOURCE_REAL=""
 if [[ -n "$PROJECT_SOURCE_ROOT" ]]; then
@@ -98,6 +103,7 @@ cleanup_legacy_governance() {
     "$env_path/.cursorrules.bak."* \
     "$env_path/AGENTS.md.bak."* \
     "$env_path/CLAUDE.md.bak."* \
+    "$env_path/GEMINI.md.bak."* \
     "$env_path/opencode.json.bak."* \
     "$env_path/.vscode/settings.json.bak."* \
     "$env_path/.ai_ops/global.bak."* \
@@ -114,7 +120,9 @@ cleanup_legacy_governance() {
     "$env_path/.cursorrules" \
     "$env_path/AGENTS.md" \
     "$env_path/CLAUDE.md" \
-    "$env_path/opencode.json"; do
+    "$env_path/GEMINI.md" \
+    "$env_path/opencode.json" \
+    "$env_path/.vscode/settings.json"; do
     if [[ -L "$path" ]]; then
       rm "$path"
     fi
@@ -161,18 +169,72 @@ write_if_missing() {
   echo "Created: $file_path"
 }
 
+ensure_local_context_file() {
+  local repo_root="$1"
+  local project_id="$2"
+  local local_context="$repo_root/.ai_ops/overrides/local-context.md"
+  local legacy_dir="$repo_root/.ai_ops/project/$project_id"
+  local legacy_agents="$legacy_dir/${project_id}-AGENTS.md"
+  local legacy_claude="$legacy_dir/${project_id}-CLAUDE.md"
+  local legacy_cursor="$legacy_dir/${project_id}-cursor.md"
+  local legacy_opencode="$legacy_dir/${project_id}-opencode.md"
+
+  if [[ -e "$local_context" ]]; then
+    return
+  fi
+
+  if [[ -d "$legacy_dir" ]] && ([[ -f "$legacy_agents" ]] || [[ -f "$legacy_claude" ]] || [[ -f "$legacy_cursor" ]] || [[ -f "$legacy_opencode" ]]); then
+    mkdir -p "$(dirname "$local_context")"
+    {
+      echo "# Local Context"
+      echo
+      echo "Migrated project context for \`$project_id\`."
+      echo "This file is loaded after \`.ai_ops/global/global-MASTER.md\` and takes precedence on conflict."
+      echo
+      for legacy_file in "$legacy_agents" "$legacy_claude" "$legacy_cursor" "$legacy_opencode"; do
+        if [[ -f "$legacy_file" ]]; then
+          echo "## Source: $(basename "$legacy_file")"
+          echo
+          cat "$legacy_file"
+          echo
+        fi
+      done
+      echo "## Runtime Project Policy"
+      echo
+      echo "@.agent/rules/project/${project_id}-project-rules.md"
+      echo "@.agent/workflows/project/${project_id}-project-workflow.md"
+    } > "$local_context"
+    echo "Migrated: $local_context (from $legacy_dir)"
+    return
+  fi
+
+  mkdir -p "$(dirname "$local_context")"
+  cat > "$local_context" <<EOF_CONTEXT
+# Local Context
+
+Add project-specific business logic, constraints, and references here.
+This file is loaded after \`.ai_ops/global/global-MASTER.md\` and overrides it on conflict.
+
+## Runtime Project Policy
+@.agent/rules/project/${project_id}-project-rules.md
+@.agent/workflows/project/${project_id}-project-workflow.md
+EOF_CONTEXT
+  echo "Created: $local_context"
+}
+
 ensure_project_override_scaffold() {
   local repo_root="$1"
   local project_id="$2"
-  local project_dir="$repo_root/.ai_ops/project/$project_id"
   local project_cursor_mdc="$repo_root/.cursor/rules/${project_id}-cursor-overrides.mdc"
 
   mkdir -p \
-    "$repo_root/.ai_ops/project/$project_id" \
+    "$repo_root/.ai_ops/overrides" \
     "$repo_root/.agent/rules/project" \
     "$repo_root/.agent/workflows/project" \
     "$repo_root/.agent/skills/project" \
     "$repo_root/.cursor/rules"
+
+  ensure_local_context_file "$repo_root" "$project_id"
 
   if [[ -f "$repo_root/.cursor/rules/project-overrides.mdc" && ! -f "$project_cursor_mdc" ]]; then
     mv "$repo_root/.cursor/rules/project-overrides.mdc" "$project_cursor_mdc"
@@ -184,30 +246,8 @@ description: ${project_id} project overrides
 globs: **/*
 ---
 # ${project_id} Project Overrides
-- Apply @.ai_ops/project/${project_id}/${project_id}-cursor.md after global rules.
-- If conflict exists, project overrides take precedence."
-
-  write_if_missing "$project_dir/${project_id}-AGENTS.md" "# ${project_id} Project AI Instructions
-
-List project-specific instructions here.
-These instructions override global instructions when conflict exists."
-
-  write_if_missing "$project_dir/${project_id}-CLAUDE.md" "# ${project_id} Project Claude Instructions
-
-@.agent/rules/project/${project_id}-project-rules.md
-@.agent/workflows/project/${project_id}-project-workflow.md
-
-Project instructions override global instructions on conflict."
-
-  write_if_missing "$project_dir/${project_id}-cursor.md" "# ${project_id} Cursor Overrides
-
-Reference project-specific docs and constraints here.
-Project-specific constraints override global cursor constraints."
-
-  write_if_missing "$project_dir/${project_id}-opencode.md" "# ${project_id} OpenCode Overrides
-
-Add project-specific OpenCode instructions here.
-Project instructions override global instructions when conflict exists."
+- Apply @.ai_ops/overrides/local-context.md after global rules.
+- If conflict exists, local context takes precedence."
 
   write_if_missing "$repo_root/.agent/rules/project/${project_id}-project-rules.md" "# ${project_id} Project Rules
 
@@ -217,6 +257,15 @@ These rules override global rules on conflict."
   write_if_missing "$repo_root/.agent/workflows/project/${project_id}-project-workflow.md" "# ${project_id} Project Workflow
 
 Add project-specific workflow steps here."
+}
+
+link_master_entrypoints() {
+  local repo_root="$1"
+  local master_file="$repo_root/.ai_ops/global/global-MASTER.md"
+
+  for entry_file in AGENTS.md CLAUDE.md .cursorrules GEMINI.md; do
+    link_path "$repo_root/$entry_file" "$master_file"
+  done
 }
 
 for ENV_PATH in "${TARGETS[@]}"; do
@@ -238,7 +287,7 @@ for ENV_PATH in "${TARGETS[@]}"; do
     fi
   fi
 
-  PROJECT_DIR="$ENV_REAL/.ai_ops/project/$PROJECT_ID"
+  PROJECT_OVERRIDES_DIR="$ENV_REAL/.ai_ops/overrides"
   PROJECT_CURSOR_MDC="$ENV_REAL/.cursor/rules/${PROJECT_ID}-cursor-overrides.mdc"
 
   if [[ "$ENV_REAL" == "$SOURCE_ROOT_REAL" ]]; then
@@ -252,7 +301,7 @@ for ENV_PATH in "${TARGETS[@]}"; do
   cleanup_legacy_governance "$ENV_REAL"
 
   mkdir -p \
-    "$ENV_REAL/.ai_ops/project" \
+    "$ENV_REAL/.ai_ops" \
     "$ENV_REAL/.agent/rules" \
     "$ENV_REAL/.agent/workflows" \
     "$ENV_REAL/.agent/skills" \
@@ -268,41 +317,12 @@ for ENV_PATH in "${TARGETS[@]}"; do
   link_path "$ENV_REAL/scripts/link_ai_governance.sh" "$SOURCE_ROOT_REAL/scripts/link_ai_governance.sh"
   link_path "$ENV_REAL/scripts/ensure_governance_links.sh" "$SOURCE_ROOT_REAL/scripts/ensure_governance_links.sh"
 
-  write_if_missing "$ENV_REAL/AGENTS.md" "# AI Instructions for ${PROJECT_ID}
-
-Apply instructions in this order:
-1. Global baseline: .ai_ops/global/global-AGENTS.md
-2. Project overrides: .ai_ops/project/${PROJECT_ID}/${PROJECT_ID}-AGENTS.md
-
-Conflict policy: project overrides win over global instructions.
-
-Also apply policy files from:
-- .agent/rules/global/*.md
-- .agent/rules/project/*.md
-- .agent/workflows/global/*.md
-- .agent/workflows/project/*.md
-- .agent/skills/global/**/SKILL.md
-- .agent/skills/project/**/SKILL.md"
-
-  write_if_missing "$ENV_REAL/CLAUDE.md" "# AI Instructions for ${PROJECT_ID}
-
-@.ai_ops/global/global-CLAUDE.md
-@.ai_ops/project/${PROJECT_ID}/${PROJECT_ID}-CLAUDE.md
-
-Project instructions override global instructions on conflict."
-
-  write_if_missing "$ENV_REAL/.cursorrules" "# Cursor Global Baseline
-@.ai_ops/global/cursor/global-cursor-reference.md
-
-# Cursor Project Overrides
-@.ai_ops/project/${PROJECT_ID}/${PROJECT_ID}-cursor.md
-
-If global and project rules conflict, project rules win."
+  link_master_entrypoints "$ENV_REAL"
 
   write_if_missing "$ENV_REAL/opencode.json" "{
   \"instructions\": [
-    \".ai_ops/global/global-opencode.md\",
-    \".ai_ops/project/${PROJECT_ID}/${PROJECT_ID}-opencode.md\",
+    \".ai_ops/global/global-MASTER.md\",
+    \".ai_ops/overrides/local-context.md\",
     \".agent/rules/global/*.md\",
     \".agent/rules/project/*.md\",
     \".agent/workflows/global/*.md\",
@@ -315,8 +335,8 @@ If global and project rules conflict, project rules win."
   write_if_missing "$ENV_REAL/.vscode/settings.json" "{
   \"codex.instructions.path\": \"AGENTS.md\",
   \"codex.context.include\": [
-    \".ai_ops/global/global-AGENTS.md\",
-    \".ai_ops/project/${PROJECT_ID}/${PROJECT_ID}-AGENTS.md\",
+    \".ai_ops/global/global-MASTER.md\",
+    \".ai_ops/overrides/local-context.md\",
     \".agent/rules/global\",
     \".agent/rules/project\"
   ],
@@ -329,7 +349,7 @@ If global and project rules conflict, project rules win."
   if [[ "$USE_PROJECT_SOURCE_LINKS" -eq 1 ]]; then
     ensure_project_override_scaffold "$PROJECT_SOURCE_FOR_TARGET" "$PROJECT_ID"
 
-    link_path "$PROJECT_DIR" "$PROJECT_SOURCE_FOR_TARGET/.ai_ops/project/$PROJECT_ID"
+    link_path "$PROJECT_OVERRIDES_DIR" "$PROJECT_SOURCE_FOR_TARGET/.ai_ops/overrides"
     link_path "$ENV_REAL/.agent/rules/project" "$PROJECT_SOURCE_FOR_TARGET/.agent/rules/project"
     link_path "$ENV_REAL/.agent/workflows/project" "$PROJECT_SOURCE_FOR_TARGET/.agent/workflows/project"
     link_path "$ENV_REAL/.agent/skills/project" "$PROJECT_SOURCE_FOR_TARGET/.agent/skills/project"

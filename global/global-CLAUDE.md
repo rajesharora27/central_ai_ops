@@ -1,13 +1,7 @@
-# Global AI Instructions
+# Global CLAUDE Baseline (Compatibility)
 
-Load these global files first:
-@.ai_ops/global/rules/global-core-governance.md
-@.ai_ops/global/rules/global-change-safety.md
-@.ai_ops/global/rules/global-quality-gates.md
-@.ai_ops/global/rules/global-conflict-resolution.md
-@.ai_ops/global/workflows/global-implementation-checklist.md
+Canonical global baseline:
+@.ai_ops/global/global-MASTER.md
 
-Then load project overrides:
-@.ai_ops/project/project-CLAUDE.md
-
-If global and project instructions conflict, project instructions win.
+Use this compatibility file only for legacy setups.
+For current setups, CLAUDE.md should point directly to `.ai_ops/global/global-MASTER.md`.

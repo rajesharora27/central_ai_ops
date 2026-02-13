@@ -10,7 +10,8 @@ Bootstraps layered AI ops for each project repo:
 - optionally sets ai.projectSource for cross-clone project override sync
 - installs auto-sync git hooks (.githooks/post-checkout|post-merge|post-rewrite)
 - links global baseline from central_ai_ops
-- scaffolds project-local override files, or links them from project-source
+- links AGENTS.md / CLAUDE.md / .cursorrules / GEMINI.md to `.ai_ops/global/global-MASTER.md`
+- scaffolds `.ai_ops/overrides/local-context.md`, or links overrides from project-source
 USAGE
 }
 
@@ -55,6 +56,10 @@ if [[ ! -x "$LINKER" ]]; then
   echo "Missing linker: $LINKER" >&2
   exit 1
 fi
+if [[ ! -f "$ROOT/global/global-MASTER.md" ]]; then
+  echo "Missing consolidated baseline: $ROOT/global/global-MASTER.md" >&2
+  exit 1
+fi
 
 install_hook() {
   local target_repo="$1"
@@ -70,6 +75,39 @@ if [[ -x scripts/ensure_governance_links.sh ]]; then
 fi
 HOOK
   chmod +x "$hook_path"
+}
+
+enforce_master_entrypoints() {
+  local target_repo="$1"
+  local timestamp
+  local master_file="$target_repo/.ai_ops/global/global-MASTER.md"
+  timestamp="$(date +%Y%m%d%H%M%S)"
+
+  if [[ ! -f "$master_file" ]]; then
+    echo "Warning: missing master baseline file: $master_file" >&2
+    return
+  fi
+
+  for entry in AGENTS.md CLAUDE.md .cursorrules GEMINI.md; do
+    local target_path="$target_repo/$entry"
+    local current_target=""
+
+    if [[ -L "$target_path" ]]; then
+      current_target="$(readlink "$target_path")"
+      if [[ "$current_target" == "$master_file" ]]; then
+        echo "OK linked: $target_path -> $master_file"
+        continue
+      fi
+    fi
+
+    if [[ -e "$target_path" || -L "$target_path" ]]; then
+      mv "$target_path" "${target_path}.bak.${timestamp}"
+      echo "Backed up: $target_path -> ${target_path}.bak.${timestamp}"
+    fi
+
+    ln -s "$master_file" "$target_path"
+    echo "Linked: $target_path -> $master_file"
+  done
 }
 
 for TARGET in "${TARGETS[@]}"; do
@@ -104,6 +142,7 @@ for TARGET in "${TARGETS[@]}"; do
   fi
 
   "$LINKER" "${LINK_ARGS[@]}"
+  enforce_master_entrypoints "$TARGET_REAL"
 done
 
 echo

@@ -3,6 +3,8 @@ set -euo pipefail
 
 QUIET="${AI_OPS_QUIET:-${AI_GOVERNANCE_QUIET:-0}}"
 FORCE="${AI_OPS_FORCE:-${AI_GOVERNANCE_FORCE:-1}}"
+SHOW_ALIAS_HINT="${AI_OPS_SHOW_ALIAS_HINT:-1}"
+VERBOSE="${AI_OPS_VERBOSE:-0}"
 
 log() {
   if [[ "$QUIET" != "1" ]]; then
@@ -14,6 +16,28 @@ warn() {
   if [[ "$QUIET" != "1" ]]; then
     echo "$@" >&2
   fi
+}
+
+print_clean_sync_output() {
+  if [[ "$QUIET" == "1" ]]; then
+    return
+  fi
+
+  echo "ai-sync: governance links refreshed"
+  echo "repo: $REPO_ROOT"
+  echo "source: $ROOT"
+  if [[ -n "$PROJECT_SOURCE" ]]; then
+    echo "project-source: $PROJECT_SOURCE"
+  fi
+}
+
+print_alias_hint() {
+  if [[ "$QUIET" == "1" || "$SHOW_ALIAS_HINT" != "1" ]]; then
+    return
+  fi
+
+  echo "hint: add this alias to ~/.bashrc"
+  echo "alias ai-sync='bash scripts/ensure_governance_links.sh'"
 }
 
 ROOT=""
@@ -71,14 +95,33 @@ if [[ ! -x "$REPO_ROOT/scripts/link_ai_governance.sh" ]]; then
   exit 0
 fi
 
-log "ai-ops: linking from $ROOT into $REPO_ROOT"
 LINK_ARGS=(--source "$ROOT" --project "$REPO_ROOT")
+if [[ "$VERBOSE" == "1" ]]; then
+  log "ai-ops: linking from $ROOT into $REPO_ROOT"
+fi
 if [[ "$FORCE" == "1" ]]; then
   LINK_ARGS+=(--force)
 fi
 if [[ -n "$PROJECT_SOURCE" ]]; then
   LINK_ARGS+=(--project-source "$PROJECT_SOURCE")
-  log "ai-ops: project overrides source $PROJECT_SOURCE"
+  if [[ "$VERBOSE" == "1" ]]; then
+    log "ai-ops: project overrides source $PROJECT_SOURCE"
+  fi
 fi
 
-"$REPO_ROOT/scripts/link_ai_governance.sh" "${LINK_ARGS[@]}"
+run_output="$(mktemp)"
+if "$REPO_ROOT/scripts/link_ai_governance.sh" "${LINK_ARGS[@]}" >"$run_output" 2>&1; then
+  print_clean_sync_output
+  if [[ "$VERBOSE" == "1" && "$QUIET" != "1" ]]; then
+    cat "$run_output"
+  fi
+  print_alias_hint
+else
+  warn "ai-sync: failed to refresh governance links"
+  if [[ "$QUIET" != "1" ]]; then
+    cat "$run_output" >&2
+  fi
+  rm -f "$run_output"
+  exit 1
+fi
+rm -f "$run_output"
