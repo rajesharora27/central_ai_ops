@@ -68,6 +68,26 @@ fi
 SOURCE_ROOT_REAL="$(cd "$SOURCE_ROOT" && pwd)"
 TIMESTAMP="$(date +%Y%m%d%H%M%S)"
 
+cleanup_legacy_governance() {
+  local env_path="$1"
+
+  # Remove deprecated governance roots from older setups.
+  rm -rf "$env_path/.agents" "$env_path/.skillshare"
+
+  # Remove backup artifacts created by earlier non-force link runs.
+  rm -rf \
+    "$env_path/.agent.bak."* \
+    "$env_path/.cursorrules.bak."* \
+    "$env_path/AGENTS.md.bak."* \
+    "$env_path/CLAUDE.md.bak."* \
+    "$env_path/opencode.json.bak."* \
+    "$env_path/.vscode/settings.json.bak."*
+
+  if [[ -d "$env_path/.cursor" ]]; then
+    rm -rf "$env_path/.cursor/"*.bak.* "$env_path/.cursor/"*.bak
+  fi
+}
+
 link_path() {
   local target="$1"
   local source="$2"
@@ -108,6 +128,7 @@ for ENV_PATH in "${TARGETS[@]}"; do
   fi
 
   echo "\n🏗️  Linking governance into: $ENV_PATH"
+  cleanup_legacy_governance "$ENV_PATH"
 
   link_path "$ENV_PATH/.agent" "$SOURCE_ROOT/.agent"
   link_path "$ENV_PATH/.cursorrules" "$SOURCE_ROOT/.cursorrules"
