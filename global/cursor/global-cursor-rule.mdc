@@ -5,7 +5,8 @@ globs: **/*
 # Global AI Ops Baseline
 - Apply consolidated baseline from `.ai_ops/global/global-MASTER.md`.
 - Apply global rules from `.ai_ops/global/rules/global-*.md`.
-- Apply global workflow from `.ai_ops/global/workflows/global-implementation-checklist.md`.
+- Apply global workflows from `.ai_ops/global/workflows/global-*.md`.
+- Apply global commands from `.ai_ops/global/commands/*.md`.
 - Then apply project business context from `.ai_ops/overrides/local-context.md`.
 - Optionally apply cursor-specific project overrides from `.cursor/rules/*-cursor-overrides.mdc`.
 - If conflict exists, project-local context and project overrides take precedence.

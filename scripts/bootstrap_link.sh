@@ -12,6 +12,7 @@ Bootstraps layered AI ops for each project repo:
 - links global baseline from central_ai_ops
 - links AGENTS.md / CLAUDE.md / .cursorrules / GEMINI.md to `.ai_ops/global/global-MASTER.md`
 - scaffolds `.ai_ops/overrides/local-context.md`, or links overrides from project-source
+- links global command packs and scaffolds project command packs
 USAGE
 }
 
@@ -58,6 +59,14 @@ if [[ ! -x "$LINKER" ]]; then
 fi
 if [[ ! -f "$ROOT/global/global-MASTER.md" ]]; then
   echo "Missing consolidated baseline: $ROOT/global/global-MASTER.md" >&2
+  exit 1
+fi
+if [[ ! -d "$ROOT/global/commands" ]]; then
+  echo "Missing global commands directory: $ROOT/global/commands" >&2
+  exit 1
+fi
+if [[ ! -x "$ROOT/scripts/verify_governance_integrity.sh" ]]; then
+  echo "Missing governance integrity verifier: $ROOT/scripts/verify_governance_integrity.sh" >&2
   exit 1
 fi
 

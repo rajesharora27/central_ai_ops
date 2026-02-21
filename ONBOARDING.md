@@ -13,7 +13,9 @@ For multiple IDE clones of the same project, you can optionally keep project ove
 - `.ai_ops/overrides/local-context.md`
 - `.agent/rules/project/<project>-project-rules.md`
 - `.agent/workflows/project/<project>-project-workflow.md`
+- `.agent/commands/project/`
 - `.cursor/rules/<project>-cursor-overrides.mdc`
+- Project blueprint contract derived from `.ai_ops/global/workflows/global-application-blueprint.md` and stored at `docs/APPLICATION_BLUEPRINT.md`
 - Entrypoint symlinks to `.ai_ops/global/global-MASTER.md`:
   - `AGENTS.md`
   - `CLAUDE.md`
@@ -43,6 +45,7 @@ When `--project-source` is set, these project-local paths are linked from the ca
 - `.ai_ops/overrides`
 - `.agent/rules/project`
 - `.agent/workflows/project`
+- `.agent/commands/project`
 - `.agent/skills/project`
 - `.cursor/rules/<project>-cursor-overrides.mdc`
 
@@ -61,6 +64,14 @@ bash scripts/ensure_governance_links.sh
 ```bash
 cd /path/to/project/repo
 bash scripts/ensure_governance_links.sh
+```
+
+## Governance Update Check
+When governance files are added or changed in `central_ai_ops`, run:
+
+```bash
+cd ~/dev/central_ai_ops
+bash scripts/verify_governance_integrity.sh
 ```
 
 Suggested alias in `~/.bashrc`:

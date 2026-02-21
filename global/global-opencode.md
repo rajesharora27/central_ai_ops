@@ -9,7 +9,9 @@ Load order:
 4. `.agent/rules/project/*.md`
 5. `.agent/workflows/global/*.md`
 6. `.agent/workflows/project/*.md`
-7. `.agent/skills/global/**/SKILL.md`
-8. `.agent/skills/project/**/SKILL.md`
+7. `.agent/commands/global/*.md`
+8. `.agent/commands/project/*.md`
+9. `.agent/skills/global/**/SKILL.md`
+10. `.agent/skills/project/**/SKILL.md`
 
 Project-local policy overrides global policy on conflict.

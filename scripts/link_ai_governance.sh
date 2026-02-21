@@ -8,7 +8,7 @@ Usage: scripts/link_ai_governance.sh [--source PATH] [--project PATH ...] [--pro
 Sets up a layered AI governance model:
 - Global baseline from central repo (`.ai_ops/global`)
 - Flattened project-local business context (`.ai_ops/overrides/local-context.md`)
-- Project runtime rules/workflows/skills (`.agent/*/project`)
+- Project runtime rules/workflows/commands/skills (`.agent/*/project`)
 
 Options:
   --source, -s   Path to central_ai_ops repo root (defaults to this script's repo)
@@ -80,6 +80,16 @@ if [[ ! -f "$SOURCE_ROOT_REAL/global/global-MASTER.md" ]]; then
   echo "Missing consolidated baseline: $SOURCE_ROOT_REAL/global/global-MASTER.md" >&2
   exit 1
 fi
+if [[ ! -d "$SOURCE_ROOT_REAL/global/commands" ]]; then
+  echo "Missing global commands directory: $SOURCE_ROOT_REAL/global/commands" >&2
+  exit 1
+fi
+if [[ ! -x "$SOURCE_ROOT_REAL/scripts/verify_governance_integrity.sh" ]]; then
+  echo "Missing governance integrity verifier: $SOURCE_ROOT_REAL/scripts/verify_governance_integrity.sh" >&2
+  exit 1
+fi
+
+"$SOURCE_ROOT_REAL/scripts/verify_governance_integrity.sh"
 
 PROJECT_SOURCE_REAL=""
 if [[ -n "$PROJECT_SOURCE_ROOT" ]]; then
@@ -96,6 +106,7 @@ cleanup_legacy_governance() {
   local env_path="$1"
 
   rm -rf "$env_path/.agents" "$env_path/.skillshare"
+  rm -rf "$env_path/.agent/commnads"
 
   rm -rf \
     "$env_path/.agent.bak."* \
@@ -108,7 +119,8 @@ cleanup_legacy_governance() {
     "$env_path/.vscode/settings.json.bak."* \
     "$env_path/.ai_ops/global.bak."* \
     "$env_path/scripts/link_ai_governance.sh.bak."* \
-    "$env_path/scripts/ensure_governance_links.sh.bak."*
+    "$env_path/scripts/ensure_governance_links.sh.bak."* \
+    "$env_path/scripts/verify_governance_integrity.sh.bak."*
 
   if [[ -d "$env_path/.cursor" ]]; then
     rm -rf "$env_path/.cursor/"*.bak* 2>/dev/null || true
@@ -116,6 +128,7 @@ cleanup_legacy_governance() {
 
   for path in \
     "$env_path/.agent" \
+    "$env_path/.agent/commands" \
     "$env_path/.cursor" \
     "$env_path/.cursorrules" \
     "$env_path/AGENTS.md" \
@@ -203,6 +216,7 @@ ensure_local_context_file() {
       echo
       echo "@.agent/rules/project/${project_id}-project-rules.md"
       echo "@.agent/workflows/project/${project_id}-project-workflow.md"
+      echo "@.agent/commands/project/*.md"
     } > "$local_context"
     echo "Migrated: $local_context (from $legacy_dir)"
     return
@@ -218,6 +232,7 @@ This file is loaded after \`.ai_ops/global/global-MASTER.md\` and overrides it o
 ## Runtime Project Policy
 @.agent/rules/project/${project_id}-project-rules.md
 @.agent/workflows/project/${project_id}-project-workflow.md
+@.agent/commands/project/*.md
 EOF_CONTEXT
   echo "Created: $local_context"
 }
@@ -231,6 +246,7 @@ ensure_project_override_scaffold() {
     "$repo_root/.ai_ops/overrides" \
     "$repo_root/.agent/rules/project" \
     "$repo_root/.agent/workflows/project" \
+    "$repo_root/.agent/commands/project" \
     "$repo_root/.agent/skills/project" \
     "$repo_root/.cursor/rules"
 
@@ -304,6 +320,7 @@ for ENV_PATH in "${TARGETS[@]}"; do
     "$ENV_REAL/.ai_ops" \
     "$ENV_REAL/.agent/rules" \
     "$ENV_REAL/.agent/workflows" \
+    "$ENV_REAL/.agent/commands" \
     "$ENV_REAL/.agent/skills" \
     "$ENV_REAL/.cursor/rules" \
     "$ENV_REAL/.vscode" \
@@ -312,6 +329,7 @@ for ENV_PATH in "${TARGETS[@]}"; do
   link_path "$ENV_REAL/.ai_ops/global" "$SOURCE_ROOT_REAL/global"
   link_path "$ENV_REAL/.agent/rules/global" "$SOURCE_ROOT_REAL/global/rules"
   link_path "$ENV_REAL/.agent/workflows/global" "$SOURCE_ROOT_REAL/global/workflows"
+  link_path "$ENV_REAL/.agent/commands/global" "$SOURCE_ROOT_REAL/global/commands"
   link_path "$ENV_REAL/.agent/skills/global" "$SOURCE_ROOT_REAL/global/skills"
   link_path "$ENV_REAL/.cursor/rules/global-cursor-rule.mdc" "$SOURCE_ROOT_REAL/global/cursor/global-cursor-rule.mdc"
   link_path "$ENV_REAL/scripts/link_ai_governance.sh" "$SOURCE_ROOT_REAL/scripts/link_ai_governance.sh"
@@ -327,6 +345,8 @@ for ENV_PATH in "${TARGETS[@]}"; do
     \".agent/rules/project/*.md\",
     \".agent/workflows/global/*.md\",
     \".agent/workflows/project/*.md\",
+    \".agent/commands/global/*.md\",
+    \".agent/commands/project/*.md\",
     \".agent/skills/global/**/SKILL.md\",
     \".agent/skills/project/**/SKILL.md\"
   ]
@@ -338,7 +358,9 @@ for ENV_PATH in "${TARGETS[@]}"; do
     \".ai_ops/global/global-MASTER.md\",
     \".ai_ops/overrides/local-context.md\",
     \".agent/rules/global\",
-    \".agent/rules/project\"
+    \".agent/rules/project\",
+    \".agent/commands/global\",
+    \".agent/commands/project\"
   ],
   \"files.exclude\": {
     \"**/node_modules\": true,
@@ -352,6 +374,7 @@ for ENV_PATH in "${TARGETS[@]}"; do
     link_path "$PROJECT_OVERRIDES_DIR" "$PROJECT_SOURCE_FOR_TARGET/.ai_ops/overrides"
     link_path "$ENV_REAL/.agent/rules/project" "$PROJECT_SOURCE_FOR_TARGET/.agent/rules/project"
     link_path "$ENV_REAL/.agent/workflows/project" "$PROJECT_SOURCE_FOR_TARGET/.agent/workflows/project"
+    link_path "$ENV_REAL/.agent/commands/project" "$PROJECT_SOURCE_FOR_TARGET/.agent/commands/project"
     link_path "$ENV_REAL/.agent/skills/project" "$PROJECT_SOURCE_FOR_TARGET/.agent/skills/project"
     link_path "$PROJECT_CURSOR_MDC" "$PROJECT_SOURCE_FOR_TARGET/.cursor/rules/${PROJECT_ID}-cursor-overrides.mdc"
 
