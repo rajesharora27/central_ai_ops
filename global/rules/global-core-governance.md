@@ -5,3 +5,4 @@
 - Do not hide failures; surface blockers with concrete evidence.
 - Prefer explicit contracts over implicit coupling.
 - Keep tool-specific wrappers thin and delegate policy to shared rule files.
+- At session start and every context refresh, read `/docs/CONTEXT.md`, `/docs/CONTRIBUTING.md`, and `/docs/APPLICATION_BLUEPRINT.md` when those files exist in the project.

@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
+trap 'echo "Interrupted." >&2; exit 130' INT TERM
 
 usage() {
   cat <<'USAGE'
-Usage: scripts/bootstrap_link.sh [--project-source PATH] /path/to/project/repo [more repos...]
+Usage: scripts/bootstrap_link.sh [--project-source PATH] [--dry-run] /path/to/project/repo [more repos...]
 
 Bootstraps layered AI ops for each project repo:
 - sets ai.opsRoot and ai.governanceRoot git config keys
@@ -11,12 +12,15 @@ Bootstraps layered AI ops for each project repo:
 - installs auto-sync git hooks (.githooks/post-checkout|post-merge|post-rewrite)
 - links global baseline from central_ai_ops
 - links AGENTS.md / CLAUDE.md / .cursorrules / GEMINI.md to `.ai_ops/global/global-MASTER.md`
+- seeds tool context include paths with docs bootstrap files:
+  `docs/CONTEXT.md`, `docs/CONTRIBUTING.md`, `docs/APPLICATION_BLUEPRINT.md`
 - scaffolds `.ai_ops/overrides/local-context.md`, or links overrides from project-source
 - links global command packs and scaffolds project command packs
 USAGE
 }
 
 PROJECT_SOURCE_INPUT="${AI_PROJECT_SOURCE:-}"
+DRY_RUN=0
 TARGETS=()
 
 while [[ $# -gt 0 ]]; do
@@ -24,6 +28,10 @@ while [[ $# -gt 0 ]]; do
     --project-source)
       PROJECT_SOURCE_INPUT="$2"
       shift 2
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      shift
       ;;
     --help|-h)
       usage
@@ -130,17 +138,27 @@ for TARGET in "${TARGETS[@]}"; do
   echo "Bootstrapping layered AI ops: $TARGET_REAL"
 
   if git -C "$TARGET_REAL" rev-parse --git-dir >/dev/null 2>&1; then
-    git -C "$TARGET_REAL" config ai.opsRoot "$ROOT"
-    git -C "$TARGET_REAL" config ai.governanceRoot "$ROOT"
-    if [[ -n "$PROJECT_SOURCE_REAL" ]]; then
-      git -C "$TARGET_REAL" config ai.projectSource "$PROJECT_SOURCE_REAL"
+    if [[ "$DRY_RUN" -eq 1 ]]; then
+      echo "[DRY RUN] Would set git config ai.opsRoot=$ROOT"
+      echo "[DRY RUN] Would set git config ai.governanceRoot=$ROOT"
+      if [[ -n "$PROJECT_SOURCE_REAL" ]]; then
+        echo "[DRY RUN] Would set git config ai.projectSource=$PROJECT_SOURCE_REAL"
+      fi
+      echo "[DRY RUN] Would install git hooks: post-checkout, post-merge, post-rewrite"
+      echo "[DRY RUN] Would set git config core.hooksPath=.githooks"
+    else
+      git -C "$TARGET_REAL" config ai.opsRoot "$ROOT"
+      git -C "$TARGET_REAL" config ai.governanceRoot "$ROOT"
+      if [[ -n "$PROJECT_SOURCE_REAL" ]]; then
+        git -C "$TARGET_REAL" config ai.projectSource "$PROJECT_SOURCE_REAL"
+      fi
+
+      install_hook "$TARGET_REAL" post-checkout
+      install_hook "$TARGET_REAL" post-merge
+      install_hook "$TARGET_REAL" post-rewrite
+
+      git -C "$TARGET_REAL" config core.hooksPath .githooks
     fi
-
-    install_hook "$TARGET_REAL" post-checkout
-    install_hook "$TARGET_REAL" post-merge
-    install_hook "$TARGET_REAL" post-rewrite
-
-    git -C "$TARGET_REAL" config core.hooksPath .githooks
   else
     echo "Warning: $TARGET_REAL is not a git repo (skipping git config)"
   fi
@@ -149,9 +167,14 @@ for TARGET in "${TARGETS[@]}"; do
   if [[ -n "$PROJECT_SOURCE_REAL" ]]; then
     LINK_ARGS+=(--project-source "$PROJECT_SOURCE_REAL")
   fi
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    LINK_ARGS+=(--dry-run)
+  fi
 
   "$LINKER" "${LINK_ARGS[@]}"
-  enforce_master_entrypoints "$TARGET_REAL"
+  if [[ "$DRY_RUN" -eq 0 ]]; then
+    enforce_master_entrypoints "$TARGET_REAL"
+  fi
 done
 
 echo

@@ -2,6 +2,12 @@
 
 Use the consolidated master baseline and flattened local context.
 
+Context bootstrap requirement (when present in repo):
+- `docs/CONTEXT.md`
+- `docs/CONTRIBUTING.md`
+- `docs/APPLICATION_BLUEPRINT.md`
+- Read these at agent startup and on every context refresh.
+
 Load order:
 1. `.ai_ops/global/global-MASTER.md`
 2. `.ai_ops/overrides/local-context.md`

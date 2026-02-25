@@ -110,6 +110,7 @@ if [[ -n "$PROJECT_SOURCE" ]]; then
 fi
 
 run_output="$(mktemp)"
+trap 'rm -f "$run_output"' EXIT
 if "$REPO_ROOT/scripts/link_ai_governance.sh" "${LINK_ARGS[@]}" >"$run_output" 2>&1; then
   print_clean_sync_output
   if [[ "$VERBOSE" == "1" && "$QUIET" != "1" ]]; then
@@ -121,7 +122,5 @@ else
   if [[ "$QUIET" != "1" ]]; then
     cat "$run_output" >&2
   fi
-  rm -f "$run_output"
   exit 1
 fi
-rm -f "$run_output"

@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
+trap 'echo "Interrupted." >&2; exit 130' INT TERM
 
 usage() {
   cat <<'USAGE'
-Usage: scripts/link_ai_governance.sh [--source PATH] [--project PATH ...] [--project-source PATH] [--force]
+Usage: scripts/link_ai_governance.sh [--source PATH] [--project PATH ...] [--project-source PATH] [--force] [--dry-run]
 
 Sets up a layered AI governance model:
 - Global baseline from central repo (`.ai_ops/global`)
 - Flattened project-local business context (`.ai_ops/overrides/local-context.md`)
 - Project runtime rules/workflows/commands/skills (`.agent/*/project`)
+- Context bootstrap docs loaded on startup/refresh when present:
+  `docs/CONTEXT.md`, `docs/CONTRIBUTING.md`, `docs/APPLICATION_BLUEPRINT.md`
 
 Options:
   --source, -s   Path to central_ai_ops repo root (defaults to this script's repo)
@@ -19,6 +22,7 @@ Options:
                  When set, `.ai_ops/overrides` and `.agent/*/project` are linked
                  from this source so local overrides are edited in one place.
   --force        Replace conflicting links/files where safe (does not overwrite project override files)
+  --dry-run      Show what would be done without making changes
   --help, -h     Show this help
 
 Examples:
@@ -31,6 +35,7 @@ USAGE
 SOURCE_ROOT="${AI_OPS_ROOT:-${AI_GOVERNANCE_ROOT:-}}"
 PROJECT_SOURCE_ROOT="${AI_PROJECT_SOURCE:-}"
 FORCE=0
+DRY_RUN=0
 TARGETS=()
 
 while [[ $# -gt 0 ]]; do
@@ -49,6 +54,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --force)
       FORCE=1
+      shift
+      ;;
+    --dry-run)
+      DRY_RUN=1
       shift
       ;;
     --help|-h)
@@ -104,9 +113,15 @@ TIMESTAMP="$(date +%Y%m%d%H%M%S)"
 
 cleanup_legacy_governance() {
   local env_path="$1"
+  [[ -n "$env_path" ]] || return
+
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "[DRY RUN] Would clean legacy governance artifacts in: $env_path"
+    return
+  fi
 
   rm -rf "$env_path/.agents" "$env_path/.skillshare"
-  rm -rf "$env_path/.agent/commnads"
+  rm -rf "$env_path/.agent/commnads" "$env_path/.agent/commands"
 
   rm -rf \
     "$env_path/.agent.bak."* \
@@ -155,6 +170,11 @@ link_path() {
     fi
   fi
 
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "[DRY RUN] Would link: $target -> $source"
+    return
+  fi
+
   if [[ -e "$target" || -L "$target" ]]; then
     if [[ "$FORCE" -eq 1 ]]; then
       rm -rf "$target"
@@ -177,6 +197,11 @@ write_if_missing() {
     return
   fi
 
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "[DRY RUN] Would create: $file_path"
+    return
+  fi
+
   mkdir -p "$(dirname "$file_path")"
   printf '%s\n' "$content" > "$file_path"
   echo "Created: $file_path"
@@ -193,6 +218,11 @@ ensure_local_context_file() {
   local legacy_opencode="$legacy_dir/${project_id}-opencode.md"
 
   if [[ -e "$local_context" ]]; then
+    return
+  fi
+
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "[DRY RUN] Would create: $local_context"
     return
   fi
 
@@ -312,19 +342,25 @@ for ENV_PATH in "${TARGETS[@]}"; do
   fi
 
   echo
-  echo "Configuring layered AI ops in: $ENV_REAL"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "[DRY RUN] Configuring layered AI ops in: $ENV_REAL"
+  else
+    echo "Configuring layered AI ops in: $ENV_REAL"
+  fi
 
   cleanup_legacy_governance "$ENV_REAL"
 
-  mkdir -p \
-    "$ENV_REAL/.ai_ops" \
-    "$ENV_REAL/.agent/rules" \
-    "$ENV_REAL/.agent/workflows" \
-    "$ENV_REAL/.agent/commands" \
-    "$ENV_REAL/.agent/skills" \
-    "$ENV_REAL/.cursor/rules" \
-    "$ENV_REAL/.vscode" \
-    "$ENV_REAL/scripts"
+  if [[ "$DRY_RUN" -eq 0 ]]; then
+    mkdir -p \
+      "$ENV_REAL/.ai_ops" \
+      "$ENV_REAL/.agent/rules" \
+      "$ENV_REAL/.agent/workflows" \
+      "$ENV_REAL/.agent/commands" \
+      "$ENV_REAL/.agent/skills" \
+      "$ENV_REAL/.cursor/rules" \
+      "$ENV_REAL/.vscode" \
+      "$ENV_REAL/scripts"
+  fi
 
   link_path "$ENV_REAL/.ai_ops/global" "$SOURCE_ROOT_REAL/global"
   link_path "$ENV_REAL/.agent/rules/global" "$SOURCE_ROOT_REAL/global/rules"
@@ -341,6 +377,9 @@ for ENV_PATH in "${TARGETS[@]}"; do
   \"instructions\": [
     \".ai_ops/global/global-MASTER.md\",
     \".ai_ops/overrides/local-context.md\",
+    \"docs/CONTEXT.md\",
+    \"docs/CONTRIBUTING.md\",
+    \"docs/APPLICATION_BLUEPRINT.md\",
     \".agent/rules/global/*.md\",
     \".agent/rules/project/*.md\",
     \".agent/workflows/global/*.md\",
@@ -357,6 +396,9 @@ for ENV_PATH in "${TARGETS[@]}"; do
   \"codex.context.include\": [
     \".ai_ops/global/global-MASTER.md\",
     \".ai_ops/overrides/local-context.md\",
+    \"docs/CONTEXT.md\",
+    \"docs/CONTRIBUTING.md\",
+    \"docs/APPLICATION_BLUEPRINT.md\",
     \".agent/rules/global\",
     \".agent/rules/project\",
     \".agent/commands/global\",
