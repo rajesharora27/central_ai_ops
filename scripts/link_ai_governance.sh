@@ -10,6 +10,7 @@ Sets up a layered AI governance model:
 - Global baseline from central repo (`.ai_ops/global`)
 - Flattened project-local business context (`.ai_ops/overrides/local-context.md`)
 - Project runtime rules/workflows/commands/skills (`.agent/*/project`)
+- Codex configuration via `.vscode/settings.json` (codex.instructions.path, codex.context.include)
 - Context bootstrap docs loaded on startup/refresh when present:
   `docs/CONTEXT.md`, `docs/CONTRIBUTING.md`, `docs/APPLICATION_BLUEPRINT.md`
 

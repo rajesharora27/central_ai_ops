@@ -16,6 +16,7 @@ IMPLEMENTATION_CHECKLIST_FILE="$ROOT/global/workflows/global-implementation-chec
 BLUEPRINT_FILE="$ROOT/global/workflows/global-application-blueprint.md"
 LINKER_FILE="$ROOT/scripts/link_ai_governance.sh"
 SKILLS_FILE="$ROOT/global/skills/global-skill-authoring-guidelines.md"
+CODEX_FILE="$ROOT/global/global-codex.md"
 
 if ! command -v rg >/dev/null 2>&1; then
   echo "FAIL: ripgrep (rg) is required but not installed. Install via: brew install ripgrep" >&2
@@ -91,6 +92,7 @@ require_file "$CORE_GOVERNANCE_FILE" "missing global core governance doc"
 require_file "$IMPLEMENTATION_CHECKLIST_FILE" "missing implementation checklist doc"
 require_file "$LINKER_FILE" "missing governance linker script"
 require_file "$SKILLS_FILE" "missing skill authoring guidelines"
+require_file "$CODEX_FILE" "missing Codex baseline doc"
 
 # --- Global command files ---
 for cmd_file in commit test lint deploy security-audit release; do
@@ -136,6 +138,10 @@ if [[ "$failures" -eq 0 ]]; then
   require_any_fixed "$CURSOR_REFERENCE_FILE" "cursor reference must require CONTRIBUTING bootstrap read" "/docs/CONTRIBUTING.md" "docs/CONTRIBUTING.md"
   require_any_fixed "$CURSOR_REFERENCE_FILE" "cursor reference must require APPLICATION_BLUEPRINT bootstrap read" "/docs/APPLICATION_BLUEPRINT.md" "docs/APPLICATION_BLUEPRINT.md"
 
+  require_any_fixed "$CODEX_FILE" "global-codex must require CONTEXT bootstrap read" "/docs/CONTEXT.md" "docs/CONTEXT.md"
+  require_any_fixed "$CODEX_FILE" "global-codex must require CONTRIBUTING bootstrap read" "/docs/CONTRIBUTING.md" "docs/CONTRIBUTING.md"
+  require_any_fixed "$CODEX_FILE" "global-codex must require APPLICATION_BLUEPRINT bootstrap read" "/docs/APPLICATION_BLUEPRINT.md" "docs/APPLICATION_BLUEPRINT.md"
+
   require_any_fixed "$CORE_GOVERNANCE_FILE" "core governance must require CONTEXT bootstrap read" "/docs/CONTEXT.md" "docs/CONTEXT.md"
   require_any_fixed "$CORE_GOVERNANCE_FILE" "core governance must require CONTRIBUTING bootstrap read" "/docs/CONTRIBUTING.md" "docs/CONTRIBUTING.md"
   require_any_fixed "$CORE_GOVERNANCE_FILE" "core governance must require APPLICATION_BLUEPRINT bootstrap read" "/docs/APPLICATION_BLUEPRINT.md" "docs/APPLICATION_BLUEPRINT.md"
@@ -148,6 +154,10 @@ if [[ "$failures" -eq 0 ]]; then
   require_fixed "docs/CONTEXT.md" "$LINKER_FILE" "linker must include docs/CONTEXT.md in generated tool context"
   require_fixed "docs/CONTRIBUTING.md" "$LINKER_FILE" "linker must include docs/CONTRIBUTING.md in generated tool context"
   require_fixed "docs/APPLICATION_BLUEPRINT.md" "$LINKER_FILE" "linker must include docs/APPLICATION_BLUEPRINT.md in generated tool context"
+
+  # --- Linker Codex config checks ---
+  require_fixed "codex.instructions.path" "$LINKER_FILE" "linker must include codex.instructions.path in .vscode/settings.json template"
+  require_fixed "codex.context.include" "$LINKER_FILE" "linker must include codex.context.include in .vscode/settings.json template"
 
   # --- Entrypoint wrappers must reference MASTER ---
   require_fixed "global-MASTER.md" "$AGENTS_FILE" "global-AGENTS must reference MASTER"

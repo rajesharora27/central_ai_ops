@@ -12,6 +12,7 @@ Bootstraps layered AI ops for each project repo:
 - installs auto-sync git hooks (.githooks/post-checkout|post-merge|post-rewrite)
 - links global baseline from central_ai_ops
 - links AGENTS.md / CLAUDE.md / .cursorrules / GEMINI.md to `.ai_ops/global/global-MASTER.md`
+- configures Codex via `.vscode/settings.json` (codex.instructions.path, codex.context.include)
 - seeds tool context include paths with docs bootstrap files:
   `docs/CONTEXT.md`, `docs/CONTRIBUTING.md`, `docs/APPLICATION_BLUEPRINT.md`
 - scaffolds `.ai_ops/overrides/local-context.md`, or links overrides from project-source
