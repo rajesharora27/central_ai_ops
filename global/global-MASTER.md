@@ -6,9 +6,24 @@ Use this file as the single global baseline for all AI entrypoints.
 - Keep changes small, testable, and reversible.
 - Prefer primary sources and project-local evidence over assumptions.
 - Preserve existing architecture unless a request explicitly authorizes redesign.
-- Preserve SRW boundaries: Skills are stateless, Rules are pure policy, Workflows orchestrate.
+- Preserve SRW boundaries: Skills are stateless, Rules are pure policy, Workflows orchestrate. See `@.ai_ops/global/rules/global-architecture-srw.md`.
 - Keep command playbooks portable: global commands provide shared defaults, project commands provide local overrides.
 - On agent startup and context refresh, load `/docs/CONTEXT.md`, `/docs/CONTRIBUTING.md`, and `/docs/APPLICATION_BLUEPRINT.md` when present.
+
+# Global Change Safety (Architecture)
+
+## Pre-flight Architecture Rule (Mandatory)
+Before coding, refactoring, or extending backend logic, complete this SRW boundary check:
+
+1. **Workflow Purity Gate**:
+   - Verify that NO inline database queries (e.g., `.from()`, `SELECT`, `UPDATE`) are added to Workflow/Handler modules.
+   - All I/O MUST be delegated to the Skill layer.
+2. **Skill Isolation Gate**:
+   - Verify that new Skills remain stateless execution helpers.
+3. **Logic Placement Gate**:
+   - Ensure business logic/policy is stored in Rules, not hardcoded in Skills.
+
+Failure in any gate blocks the change until the architecture is aligned. See `@.ai_ops/global/rules/global-architecture-srw.md`.
 
 ## Mandatory Global Policy Inputs
 - `.ai_ops/global/rules/global-*.md`
