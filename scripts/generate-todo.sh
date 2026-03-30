@@ -12,7 +12,8 @@ TMP_DONE=$(mktemp)
 TMP_PLANS=$(mktemp)
 
 # Write header
-echo "# Vigo — Task Hub" > "$OUT"
+PROJECT_NAME=$(basename "$(pwd)")
+echo "# ${PROJECT_NAME} — Task Hub" > "$OUT"
 echo "" >> "$OUT"
 echo "> Auto-generated from task file frontmatter. Do not edit manually." >> "$OUT"
 echo "> Run \`npm run tasks:sync\` to regenerate. See \`.ai_ops/global/rules/global-task-governance.md\` for conventions." >> "$OUT"
