@@ -6,7 +6,7 @@ For multiple IDE clones of the same project, you can optionally keep project ove
 
 ## Naming Convention
 - Global files include `global-` prefix.
-- Project runtime policy files include the project name, for example `dap-project-rules.md`.
+- Project runtime policy files include the project name, for example `myapp-project-rules.md`.
 
 ## Project Layout (after bootstrap)
 - `.ai_ops/global` -> symlink to `central_ai_ops/global`

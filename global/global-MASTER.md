@@ -2,10 +2,16 @@
 
 Use this file as the single global baseline for all AI entrypoints.
 
+## Build & Deploy (Critical)
+- Build and run commands are **project-specific**. Follow the project’s docs (e.g. `docs/CONTRIBUTING.md`, `docs/CONTEXT.md`) or `.ai_ops/overrides/local-context.md` for how to build, run in production, and run in development.
+- After code changes that affect backend or frontend, rebuild as needed (e.g. `cd backend && npm run build`, `cd frontend && npm run build`); then run or restart the app per project conventions.
+- Do not assume or reference tooling from other projects (e.g. no cross-project scripts or runner names). Each repo defines its own run/dev workflow.
+
 ## Core Priorities
 - Keep changes small, testable, and reversible.
 - Prefer primary sources and project-local evidence over assumptions.
 - Preserve existing architecture unless a request explicitly authorizes redesign.
+- **NEVER run `supabase db reset`.** This command destroys all user data. Use `supabase migration up --local` to apply new migrations incrementally.
 - Preserve SRW boundaries: Skills are stateless, Rules are pure policy, Workflows orchestrate. See `@.ai_ops/global/rules/global-architecture-srw.md`.
 - Keep command playbooks portable: global commands provide shared defaults, project commands provide local overrides.
 - On agent startup and context refresh, load `/docs/CONTEXT.md`, `/docs/CONTRIBUTING.md`, and `/docs/APPLICATION_BLUEPRINT.md` when present.
