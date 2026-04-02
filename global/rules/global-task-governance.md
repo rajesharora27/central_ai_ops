@@ -26,12 +26,27 @@ When a user requests work that will take more than a trivial edit:
 
 Legacy `T-XXX` IDs are still valid and don't need migration. New tasks use the typed format.
 
-### 3. Frontmatter Format (Mandatory)
+### 3. Naming Conventions
+
+**Title format** — Human-readable Title Case. Never include the task ID or type prefix in the title.
+
+- `"FEAT 042 GAMIFICATION SYSTEM"` → `"Gamification System"`
+- `"CHORE 110 RELEASE PIPELINE HARDENING"` → `"Release Pipeline Hardening"`
+- `"FIX-015 Chat scroll bug"` → `"Chat Scroll Bug"`
+
+**File naming** — `{TYPE}-{NNN}-{kebab-description}.md`
+
+- Task: `docs/tasks/FEAT-042-gamification.md`
+- Plan: `docs/plans/FEAT-042-gamification.md` or `docs/plans/{descriptive-name}.md`
+
+**Plan file naming** — Use the task ID prefix when the plan maps 1:1 to a task. Use a descriptive name when the plan is standalone or spans multiple tasks. Never use auto-generated prefixes like `O-1-O-2-...`.
+
+### 4. Frontmatter Format (Mandatory)
 
 ```yaml
 ---
 id: FEAT-042
-title: "Short descriptive title"
+title: "Short descriptive title"   # Title Case, no ID prefix, no SCREAMING_CASE
 type: feat          # feat | fix | chore
 status: in_progress # planned | in_progress | done | backlog
 priority: high      # high | medium | low
@@ -42,7 +57,7 @@ updated: 2026-03-30
 ---
 ```
 
-### 4. Status Transitions
+### 5. Status Transitions
 
 ```
 planned → in_progress → done
@@ -50,14 +65,14 @@ planned → backlog (deferred)
 backlog → in_progress (resumed)
 ```
 
-### 5. Completion
+### 6. Completion
 
 When a task is finished:
 1. Set `status: done` and update the `updated` date
 2. Move the file from `docs/tasks/` to `docs/tasks/completed/`
 3. Run `npm run tasks:sync` to regenerate `docs/ToDo.md`
 
-### 6. Plans
+### 7. Plans
 
 Plans live in `docs/plans/` and are linked from the task's `plan:` frontmatter field. A plan is optional — small tasks don't need one. Plans describe the "how", tasks describe the "what".
 
