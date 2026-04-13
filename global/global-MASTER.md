@@ -15,6 +15,16 @@ Use this file as the single global baseline for all AI entrypoints.
 - Preserve SRW boundaries: Skills are stateless, Rules are pure policy, Workflows orchestrate. See `@.ai_ops/global/rules/global-architecture-srw.md`.
 - Use the project task hub for every repo-changing request: plan in `docs/plans/`, task set in `docs/tasks/`, completed tasks archived in `docs/tasks/completed/`, and `docs/TODO.md` regenerated from frontmatter.
 - Require tests as part of the implementation, not as a follow-up. New features must add unit coverage, integration coverage must be updated when behavior crosses boundaries, and deploys are blocked until required checks pass.
+- Require AI-specific evaluation coverage for AI behavior changes. Prompt/model/tool changes should ship with representative evals and regression examples, not only code tests.
+- Keep AI provider/model choices portable. Treat vendor/runtime selection as configurable infrastructure instead of hardcoded business logic.
+- Require AI observability. Production AI flows should emit enough structured metadata to diagnose provider/model choice, latency, retries, tool use, and degraded behavior safely.
+- Roll out AI changes with blast-radius control. Prefer staged rollout, kill switches, and rollback paths over all-at-once prompt/model changes.
+- Treat async fan-out and provider rate limits as architecture concerns. Background jobs must use bounded retries, pacing/queueing where needed, and partial-failure visibility.
+- Enforce AI safety and output contracts. User-facing AI must fail safely, follow explicit rendering/formatting expectations, and avoid silently degrading into broken experiences.
+- Keep provenance, memory, and privacy explicit. Retrieval scope, context reuse, retention, and deletion should be governed deliberately rather than left to prompt accidents or provider defaults.
+- Require incident readiness, not just implementation completeness. High-risk behaviors need recovery paths, operational ownership, and believable rollback/disablement strategies.
+- Manage performance, cost, and parity deliberately. AI features should have explicit budget expectations and should not rely on hidden environment drift.
+- Treat user-visible reliability and migration safety as global governance concerns. A passing backend is not enough if the UX strands users or the schema rollout is brittle.
 - Verify features from the user's perspective, not only from the implementation layer. A technically passing change that breaks the real user flow is not complete.
 - Reuse existing code first. Avoid redundant logic, collapse duplication into shared modules/services where appropriate, and keep code simple, readable, and formatted.
 - Keep command playbooks portable: global commands provide shared defaults, project commands provide local overrides.

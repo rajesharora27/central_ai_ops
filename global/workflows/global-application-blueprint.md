@@ -162,17 +162,65 @@ Requirements:
 1. Provider configuration
 - Provider/runtime selection must be settings-driven with env fallback.
 - Required provider env/config must be validated at startup.
+- Model/provider assumptions should be explicit and portable across supported vendors.
 
 2. Result interaction pattern
 - Centralize action handling for AI-produced records.
 - Prefer review/preview flows over brittle direct navigation.
 - Support tolerant identifier mapping when AI output references related entities.
 
+3. Evaluation contract
+- AI behavior changes should have representative eval coverage and regression examples.
+- Formatting and output-contract expectations should be validated, not assumed.
+
+4. Observability contract
+- AI execution should emit enough structured telemetry to diagnose provider/model choice, retries, latency, tool usage, and degraded behavior safely.
+
+5. Rollout and fallback contract
+- High-risk AI changes should support staged rollout, kill switches, or rollback-friendly configuration where practical.
+- Degraded-mode behavior should be explicit rather than accidental.
+
+6. Async reliability contract
+- Background AI jobs, notifications, summaries, and other fan-out flows should respect provider rate limits and use bounded retries with idempotency rules.
+
+7. Safety contract
+- AI features should define safety expectations, escalation rules, and safe fallback behavior for sensitive or high-risk outputs.
+
+8. Output contract
+- AI-produced content should have explicit rendering or schema expectations and graceful degradation rules when formatting breaks.
+
+9. Provenance and retrieval contract
+- Retrieval-dependent features should define allowed sources, freshness expectations, and how grounded vs inferred content is handled.
+
+10. Memory and context contract
+- Context assembly, summary reuse, and memory retention should be explicit enough to avoid stale-state drift and accidental prompt leakage.
+
+11. Privacy and retention contract
+- AI-related prompts, summaries, logs, and derived artifacts should follow explicit minimization, retention, deletion, and export expectations.
+
+12. Incident contract
+- High-risk systems should define incident ownership, recovery behavior, and escalation expectations.
+
+13. Performance and cost contract
+- AI and adjacent systems should define latency, timeout, and cost expectations where they materially affect user experience or operating risk.
+
+14. Environment parity contract
+- Projects should define meaningful parity expectations across local, test, stage, prod, and cross-agent environments.
+
+15. User-experience reliability contract
+- User-visible loading, retry, degraded-mode, and recovery behavior should be intentional and tested where practical.
+
+16. Schema and migration contract
+- Persisted-state changes should follow compatibility-first, rollout-safe migration patterns with explicit validation expectations.
+
 ### 10. Quality and Release Contract
 
 Before merge/deploy:
 - Required quality checks pass (lint, typecheck, dependency, targeted tests).
 - Every new feature has unit coverage, and integration coverage is updated where boundaries changed.
+- AI behavior changes have representative eval coverage or an explicitly documented gap.
+- Safety, output-contract, provenance, context, and privacy expectations are addressed for AI changes where relevant.
+- Incident, performance/cost, parity, user-reliability, and migration expectations are addressed where relevant.
 - User-facing flows affected by the change have been validated from the application perspective.
 - Governance checks pass (SRW, modular layout, repo hygiene, migration safety as applicable).
 - Release risk/parity checks pass for promotions.
@@ -188,6 +236,8 @@ Rules:
 - Database consistency verification is required before deployment.
 - Promotion is blocked when risk/parity checks fail.
 - Deployment scripts should run the relevant validation before shipping and must not deploy when required tests fail.
+- AI releases should support staged rollout, kill switches, or an explicit documented fallback path when practical.
+- Environment parity and migration readiness should be considered before promotion to higher environments.
 
 ### 12. Documentation Contract
 
@@ -205,6 +255,10 @@ Rules:
 - [ ] Layer order (data -> backend -> API -> frontend) is respected.
 - [ ] Business logic is canonical and not duplicated.
 - [ ] Code reuse was considered before adding new pathways, and the result remains simple/readable.
+- [ ] AI behavior changes have evaluation coverage, explicit provider/runtime assumptions, and sufficient observability.
+- [ ] Async and fan-out paths handle retries, pacing, idempotency, and provider limits appropriately.
+- [ ] AI safety, output-contract, provenance, context, and privacy expectations are explicitly handled where relevant.
+- [ ] Incident, cost/performance, parity, user-reliability, and schema/migration expectations are explicitly handled where relevant.
 - [ ] Schema changes are backward-compatible and migration-safe.
 - [ ] API non-null and soft-delete contracts are preserved (when applicable).
 - [ ] Security/env/auth governance requirements are met.

@@ -8,6 +8,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - Global commands: test, lint, deploy, security-audit, release
 - Global artifact governance rule covering plans, tasks, completed archive, and `docs/TODO.md`
+- Global AI evaluation governance rule
+- Global model and provider governance rule
+- Global AI observability rule
+- Global release and rollout governance rule
+- Global background jobs and retries governance rule
+- Global AI safety governance rule
+- Global output contracts rule
+- Global data provenance and RAG governance rule
+- Global memory and context governance rule
+- Global privacy retention and deletion governance rule
+- Global incident response rule
+- Global performance and cost budgets rule
+- Global environment parity rule
+- Global user experience reliability rule
+- Global schema and migration governance rule
 - Dry-run mode for bootstrap and link scripts (`--dry-run`)
 - Signal handlers for safe script interruption (INT/TERM traps)
 - Ripgrep dependency check in verification script
@@ -30,6 +45,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - `ensure_governance_links.sh` now owns the full governance sync logic and is safe by default
 - README and onboarding docs rewritten around the simplified governance model and rule inventory
 - Canonical governance now explicitly requires task-hub preflight, feature-unit tests plus integration updates as needed, deploy blocking on failed validation, reuse-first implementation, and user-flow verification
+- Canonical governance now also requires AI evaluation coverage, provider/runtime portability, AI observability, rollout control, and scale-safe async retry discipline for AI workloads
+- Canonical governance now also requires AI safety controls, output contracts, provenance boundaries, context hygiene, and privacy-aware retention/deletion expectations for AI workloads
+- Canonical governance now also requires incident readiness, performance/cost discipline, environment parity, user-visible reliability, and schema/migration safety expectations
 - Task-hub tooling now standardizes on `docs/TODO.md` instead of `docs/ToDo.md`
 
 ### Removed
