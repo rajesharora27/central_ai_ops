@@ -25,7 +25,10 @@ This template defines a two-layer contract in one document:
 - Avoid duplicated filtering/validation/calculation logic across layers.
 - Use adapters for shape translation only.
 
-4. Keep changes safe and reversible.
+4. Track implementation work in the project task hub.
+- Repo-changing work should have a plan in `docs/plans/`, tasks in `docs/tasks/`, completed tasks archived in `docs/tasks/completed/`, and a generated `docs/TODO.md`.
+
+5. Keep changes safe and reversible.
 - Minimize blast radius.
 - Preserve backward compatibility by default.
 - Prefer incremental, testable rollout.
@@ -33,6 +36,11 @@ This template defines a two-layer contract in one document:
 ### 2. Canonical References
 
 Each project should define and maintain equivalent source-of-truth docs, for example:
+- `/docs/plans/`
+- `/docs/tasks/`
+- `/docs/tasks/completed/`
+- `/docs/TODO.md`
+- `/docs/<appname>.md` (`<appname>` matches the repository or app-folder name and serves as the canonical app/product overview)
 - `/docs/core/ARCHITECTURE.md`
 - `/docs/core/APPLICATION.md`
 - `/docs/core/DEVELOPMENT.md`
@@ -68,6 +76,7 @@ Rules:
 - Frontend is organized by feature.
 - Cross-feature reusable code belongs in shared modules.
 - Avoid monolithic utility/service files that mix unrelated domains.
+- Reuse existing code before adding new pathways; prefer shared modules/services over duplication.
 
 ### 4. Security and Environment Governance
 
@@ -163,6 +172,8 @@ Requirements:
 
 Before merge/deploy:
 - Required quality checks pass (lint, typecheck, dependency, targeted tests).
+- Every new feature has unit coverage, and integration coverage is updated where boundaries changed.
+- User-facing flows affected by the change have been validated from the application perspective.
 - Governance checks pass (SRW, modular layout, repo hygiene, migration safety as applicable).
 - Release risk/parity checks pass for promotions.
 - Targeted regression suites pass when impacted.
@@ -176,20 +187,24 @@ Rules:
 - Stage validation is required before production.
 - Database consistency verification is required before deployment.
 - Promotion is blocked when risk/parity checks fail.
+- Deployment scripts should run the relevant validation before shipping and must not deploy when required tests fail.
 
 ### 12. Documentation Contract
 
 1. Keep docs canonical and non-duplicative.
 2. Use root-relative internal links with correct casing.
-3. Update applicable docs on behavior/contract changes.
-4. Keep release notes current with concise, versioned entries.
-5. Avoid stale references, duplicated policy text, and long debugging timelines in blueprint docs.
+3. Update applicable docs on every completed task that changes behavior, contracts, workflows, architecture, or developer expectations.
+4. Keep `/docs/<appname>.md`, `/docs/CONTEXT.md`, `/docs/CONTRIBUTING.md`, and `/docs/APPLICATION_BLUEPRINT.md` aligned with the current product and engineering reality.
+5. Keep release notes current with concise, versioned entries.
+6. Avoid stale references, duplicated policy text, and long debugging timelines in blueprint docs.
 
 ### 13. Compliance Checklist
 
 - [ ] SRW boundaries are preserved.
+- [ ] Task hub artifacts (plan, tasks, TODO, completed archive) are updated for repo-changing work.
 - [ ] Layer order (data -> backend -> API -> frontend) is respected.
 - [ ] Business logic is canonical and not duplicated.
+- [ ] Code reuse was considered before adding new pathways, and the result remains simple/readable.
 - [ ] Schema changes are backward-compatible and migration-safe.
 - [ ] API non-null and soft-delete contracts are preserved (when applicable).
 - [ ] Security/env/auth governance requirements are met.

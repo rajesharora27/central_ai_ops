@@ -1,203 +1,167 @@
 # central_ai_ops
 
-Central AI operations framework with a layered governance model that works across all major AI coding tools.
+`central_ai_ops` is the shared governance source for all AI-enabled project environments. It keeps one global policy baseline in this repo and projects consume that baseline through linked governance files plus project-local docs and overrides.
 
-## How It Works
+The baseline is intentionally cross-agent: Cursor, Codex, Claude, Gemini, Copilot, and other compatible agents should inherit the same governance expectations unless a project-local override explicitly narrows them.
 
-1. **Global baseline** in this repo (`global/`) — shared rules, workflows, commands, skills.
-2. **Project-local context** in each project (`.ai_ops/overrides/local-context.md`) — project-specific docs, architecture, conventions.
-3. **Runtime policy** in each project (`.agent/*/project/`) — project rules, workflows, commands.
-4. **Compiled entrypoints** — `compile_governance.sh` assembles all layers into each AI tool's config file with actual content.
+## Governance Model
 
-## Quick Start
+The model has three active layers:
 
-### Bootstrap a new project
+1. **Global baseline** in this repo under `global/`
+   Shared rules, workflows, command playbooks, cursor guidance, and compatibility docs.
+2. **Project business context** in each project under `.ai_ops/overrides/local-context.md`
+   This file points at the project’s canonical docs such as `docs/CONTEXT.md`, `docs/CONTRIBUTING.md`, `docs/APPLICATION_BLUEPRINT.md`, and `docs/<appname>.md`.
+3. **Project runtime policy** in each project under `.agent/*/project/`
+   Project-specific rules, workflows, commands, and skills that override the global baseline when needed.
+
+Precedence is simple: project-local policy wins over global policy on conflict.
+
+## Two Scripts
+
+These are the only user-facing governance scripts:
+
+1. `scripts/bootstrap_link.sh`
+   First-time setup for a new project. It installs the governance baseline, configures git hooks, and can replace old governance wrappers so the project starts cleanly.
+2. `scripts/ensure_governance_links.sh`
+   Safe anytime sync for an existing project. By default it only creates missing governance files and links. It does not overwrite existing files unless you pass `--force`.
+
+Quick examples:
 
 ```bash
+# First-time setup
 cd ~/dev/central_ai_ops
+scripts/bootstrap_link.sh /path/to/project
 
-# Link governance structure into a project
-scripts/link_ai_governance.sh --project /path/to/project
+# Safe anytime sync from inside a project
+cd /path/to/project
+bash scripts/ensure_governance_links.sh
 
-# Compile governance into AI tool entrypoints
-scripts/compile_governance.sh --project /path/to/project
+# Preview changes without writing
+bash scripts/ensure_governance_links.sh --dry-run
+
+# Replace conflicting governance wrappers only when intentional
+bash scripts/ensure_governance_links.sh --force
 ```
 
-### Ensure governance is correct (run anytime)
+## What Bootstrap Installs
 
-```bash
-# From project directory:
-bash scripts/compile_governance.sh
+For a bootstrapped project, the governance layer looks like this:
 
-# Or from central_ai_ops:
-scripts/compile_governance.sh --project ~/dev/my-project
-
-# Verify without changing files:
-scripts/compile_governance.sh --project ~/dev/my-project --verify
-```
-
-**Run `compile_governance.sh` after any change to governance files** (global rules, project docs, local-context.md, project rules/workflows).
-
-### Multiple projects at once
-
-```bash
-scripts/compile_governance.sh \
-  --project ~/dev/project-a \
-  --project ~/dev/project-b \
-  --project ~/dev/project-c
-```
-
-## AI Tool Support
-
-The compile script generates entrypoints for all major tools:
-
-| AI Tool | Entrypoint File | Auto-loaded? |
-|---------|----------------|-------------|
-| Claude Code | `CLAUDE.md` | Yes — loaded automatically at project root |
-| Cursor | `.cursorrules` | Yes — loaded automatically at project root |
-| OpenAI Codex | `AGENTS.md` | Yes — loaded automatically at project root |
-| GitHub Copilot | `.github/copilot-instructions.md` | Yes — loaded by Copilot |
-| Gemini | `GEMINI.md` | Yes — loaded by Gemini |
-
-Each entrypoint contains the **same compiled governance content**: global baseline + global rules/workflows/commands + project docs + project runtime policy. Every AI tool gets the full instruction set as actual text — no symlinks, no path references, no `@` includes.
-
-### Tool-specific extras
-
-| Tool | Additional Config | Notes |
-|------|------------------|-------|
-| Cursor | `.cursor/rules/*.mdc` | MDC rules for Cursor-specific behavior (glob-scoped) |
-| Claude Code | `.claude/rules/*.md` | Additional rules beyond CLAUDE.md |
-| Codex | `.vscode/settings.json` | `codex.instructions.path` and `codex.context.include` |
-| OpenCode | `opencode.json` | Instruction file list |
-
-These are set up by `link_ai_governance.sh` and don't need recompilation.
-
-## Directory Structure
-
-```
-central_ai_ops/
-  global/
-    global-MASTER.md              # Canonical global baseline (load order, priorities)
-    global-AGENTS.md              # Legacy wrapper → MASTER
-    global-CLAUDE.md              # Legacy wrapper → MASTER
-    rules/
-      global-core-governance.md   # Core governance principles
-      global-change-safety.md     # Change safety rules
-      global-quality-gates.md     # Quality gate requirements
-      global-security.md          # Mandatory security pre-flight
-      global-conflict-resolution.md # Precedence rules
-    workflows/
-      global-application-blueprint.md   # Architecture contract template
-      global-implementation-checklist.md # Implementation steps
-    commands/
-      commit.md, deploy.md, lint.md, release.md, security-audit.md, test.md
-    skills/
-      global-skill-authoring-guidelines.md
-    cursor/
-      global-cursor-rule.mdc      # Cursor-specific MDC rule
-  scripts/
-    compile_governance.sh         # ★ Compiles governance → entrypoints
-    link_ai_governance.sh         # Links governance structure into projects
-    bootstrap_link.sh             # Quick project bootstrap
-    ensure_governance_links.sh    # Hook-safe sync for repos
-    verify_governance_integrity.sh # Integrity verification
-```
-
-### In each bootstrapped project
-
-```
+```text
 project/
-  CLAUDE.md                       # ← compiled (Claude Code)
-  AGENTS.md                       # ← compiled (Codex)
-  .cursorrules                    # ← compiled (Cursor)
-  GEMINI.md                       # ← compiled (Gemini)
-  .github/copilot-instructions.md # ← compiled (Copilot)
+  AGENTS.md
+  CLAUDE.md
+  GEMINI.md
+  .cursorrules
+  .github/copilot-instructions.md
   .ai_ops/
-    global/                       # → symlink to central_ai_ops/global
+    global/                  -> symlink to central_ai_ops/global
     overrides/
-      local-context.md            # Project-specific context (@refs to docs)
+      local-context.md
   .agent/
-    rules/global/                 # → symlink to central global rules
-    rules/project/                # Project-specific rules
-    workflows/global/             # → symlink to central global workflows
-    workflows/project/            # Project-specific workflows
-    commands/global/              # → symlink to central global commands
-    commands/project/             # Project-specific commands
+    rules/global/            -> symlink
+    rules/project/
+    workflows/global/        -> symlink
+    workflows/project/
+    commands/global/         -> symlink
+    commands/project/
+    skills/global/           -> symlink
+    skills/project/
+  .cursor/rules/
+  .vscode/settings.json
+  opencode.json
+  scripts/ensure_governance_links.sh
   docs/
-    vigo.md (or equivalent)       # Project documentation (referenced from local-context.md)
-    CONTRIBUTING.md               # Dev conventions
+    CONTEXT.md
+    CONTRIBUTING.md
+    APPLICATION_BLUEPRINT.md
+    <appname>.md
 ```
 
-## Governance Layers and Precedence
+The root AI instruction files point to the global master baseline, while project context and runtime policy are loaded from the linked local paths.
 
-```
-┌─────────────────────────────────────────────┐
-│  3. Project Runtime Policy (highest)        │  .agent/rules/project/*
-│     Project rules override everything       │  .agent/workflows/project/*
-├─────────────────────────────────────────────┤
-│  2. Project Business Context                │  .ai_ops/overrides/local-context.md
-│     @refs to docs/*.md                      │  → docs/vigo.md, docs/CONTRIBUTING.md
-├─────────────────────────────────────────────┤
-│  1. Global Baseline (lowest)                │  global-MASTER.md
-│     Global rules, workflows, commands       │  global/rules/*, workflows/*, commands/*
-└─────────────────────────────────────────────┘
-```
+## Documentation Contract
 
-Project-local content overrides global content on conflict.
+Every governed project is expected to keep these canonical docs current:
+
+- `docs/CONTEXT.md`
+- `docs/CONTRIBUTING.md`
+- `docs/APPLICATION_BLUEPRINT.md`
+- `docs/<appname>.md`
+
+Agents must read them at startup and context refresh when present. Agents must also update the relevant docs before closing any task that changes behavior, architecture, workflows, or developer expectations.
+
+## Global Rules
+
+The main global governance sources are:
+
+- `global/global-MASTER.md`
+  Canonical baseline, priorities, mandatory inputs, and load order.
+- `global/rules/global-core-governance.md`
+  Core expectations for repository behavior, determinism, and doc upkeep.
+- `global/rules/global-architecture-srw.md`
+  SRW architecture contract: Skills are stateless, Rules are policy, Workflows orchestrate.
+- `global/rules/global-task-governance.md`
+  Task lifecycle, task IDs, completion rules, and mandatory documentation updates.
+- `global/rules/global-artifact-governance.md`
+  Canonical storage rules for plans, tasks, completed-task archives, and `docs/TODO.md`.
+- `global/rules/global-change-safety.md`
+  Change-minimization and reversibility rules.
+- `global/rules/global-quality-gates.md`
+  Validation expectations, feature-test requirements, deploy blocking, reuse-first implementation, and release hygiene.
+- `global/rules/global-security.md`
+  Secrets, ORM/query safety, and security pre-flight checks.
+- `global/rules/global-conflict-resolution.md`
+  Rule precedence between global and project-local policy.
+- `global/workflows/global-implementation-checklist.md`
+  The standard execution checklist for agents.
+- `global/workflows/global-application-blueprint.md`
+  The baseline template for each project’s `docs/APPLICATION_BLUEPRINT.md`.
+- `global/commands/*.md`
+  Shared command playbooks for commit, test, lint, deploy, security audit, and release work.
+- `global/skills/global-skill-authoring-guidelines.md`
+  Guidance for writing and maintaining reusable skills.
+- `global/cursor/global-cursor-rule.mdc`
+  Cursor-specific baseline behavior.
+- `global/global-AGENTS.md`, `global/global-CLAUDE.md`, `global/global-codex.md`, `global/global-opencode.md`
+  Compatibility wrappers and tool-specific baseline references.
 
 ## Workflow
 
-### First-time setup
+For a new project:
 
 ```bash
-# 1. Bootstrap project structure (symlinks + scaffolds)
 cd ~/dev/central_ai_ops
-scripts/link_ai_governance.sh --project ~/dev/my-project
-
-# 2. Edit project context
-#    - Write your docs (docs/vigo.md, docs/CONTRIBUTING.md, etc.)
-#    - Update .ai_ops/overrides/local-context.md with @refs to your docs
-#    - Add project rules in .agent/rules/project/
-
-# 3. Compile into entrypoints
-scripts/compile_governance.sh --project ~/dev/my-project
-
-# 4. Verify
-scripts/compile_governance.sh --project ~/dev/my-project --verify
+scripts/bootstrap_link.sh /path/to/project
 ```
 
-### After changing governance files
+For a project that already uses this governance model:
 
 ```bash
-# Recompile entrypoints
-scripts/compile_governance.sh --project ~/dev/my-project
-
-# Or from inside the project:
-bash scripts/compile_governance.sh
+cd /path/to/project
+bash scripts/ensure_governance_links.sh
 ```
 
-### Multi-IDE clone (canonical project source)
+For multi-clone setups where one canonical repo owns project-local overrides:
 
 ```bash
-# Link from canonical project repo to an IDE-specific clone
-scripts/link_ai_governance.sh \
-  --project ~/dev/cursor-clone/my-project \
-  --project-source ~/dev/my-project
-
-# Then compile
-scripts/compile_governance.sh --project ~/dev/cursor-clone/my-project
+cd ~/dev/central_ai_ops
+scripts/bootstrap_link.sh \
+  --project-source /path/to/canonical/project \
+  /path/to/ide/clone
 ```
 
-## Security Gate
+## Governance Maintenance
 
-`global/rules/global-security.md` defines mandatory pre-flight checks:
-- Secret exposure checks
-- ORM compliance (parameterized queries)
-- CI/CodeQL readiness
+When you change files under `global/`:
 
-## Governance Change Rule
+1. Update the relevant global rule/workflow/command docs.
+2. Update this repo’s documentation when the operating model changes.
+3. Keep the central task hub (`docs/plans/`, `docs/tasks/`, `docs/tasks/completed/`, `docs/TODO.md`) aligned with the change.
+4. Run `bash scripts/verify_governance_integrity.sh`.
+5. Existing projects can then run `bash scripts/ensure_governance_links.sh` safely at any time.
 
-When updating governance artifacts under `global/`:
-1. Update `global/global-MASTER.md` if load paths change.
-2. Run `scripts/verify_governance_integrity.sh`.
-3. Recompile all active projects: `scripts/compile_governance.sh --project <each>`.
+`verify_governance_integrity.sh` is the maintainer check for this repo. It is not part of the normal project bootstrap/sync flow.
+
+The baseline blueprint template lives at `global/workflows/global-application-blueprint.md`.

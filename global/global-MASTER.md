@@ -13,8 +13,13 @@ Use this file as the single global baseline for all AI entrypoints.
 - Preserve existing architecture unless a request explicitly authorizes redesign.
 - **NEVER run `supabase db reset`.** This command destroys all user data. Use `supabase migration up --local` to apply new migrations incrementally.
 - Preserve SRW boundaries: Skills are stateless, Rules are pure policy, Workflows orchestrate. See `@.ai_ops/global/rules/global-architecture-srw.md`.
+- Use the project task hub for every repo-changing request: plan in `docs/plans/`, task set in `docs/tasks/`, completed tasks archived in `docs/tasks/completed/`, and `docs/TODO.md` regenerated from frontmatter.
+- Require tests as part of the implementation, not as a follow-up. New features must add unit coverage, integration coverage must be updated when behavior crosses boundaries, and deploys are blocked until required checks pass.
+- Verify features from the user's perspective, not only from the implementation layer. A technically passing change that breaks the real user flow is not complete.
+- Reuse existing code first. Avoid redundant logic, collapse duplication into shared modules/services where appropriate, and keep code simple, readable, and formatted.
 - Keep command playbooks portable: global commands provide shared defaults, project commands provide local overrides.
-- On agent startup and context refresh, load `/docs/CONTEXT.md`, `/docs/CONTRIBUTING.md`, and `/docs/APPLICATION_BLUEPRINT.md` when present.
+- On agent startup and context refresh, load `/docs/CONTEXT.md`, `/docs/CONTRIBUTING.md`, `/docs/APPLICATION_BLUEPRINT.md`, and `/docs/<appname>.md` when present. `<appname>` is the repository or app-folder name.
+- Before closing a task, sync every impacted project document. This includes `/docs/CONTEXT.md`, `/docs/CONTRIBUTING.md`, `/docs/APPLICATION_BLUEPRINT.md`, `/docs/<appname>.md`, and any other changed source-of-truth docs.
 
 # Global Change Safety (Architecture)
 

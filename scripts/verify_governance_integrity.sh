@@ -12,9 +12,11 @@ OPENCODE_FILE="$ROOT/global/global-opencode.md"
 CURSOR_FILE="$ROOT/global/cursor/global-cursor-rule.mdc"
 CURSOR_REFERENCE_FILE="$ROOT/global/cursor/global-cursor-reference.md"
 CORE_GOVERNANCE_FILE="$ROOT/global/rules/global-core-governance.md"
+ARTIFACT_GOVERNANCE_FILE="$ROOT/global/rules/global-artifact-governance.md"
 IMPLEMENTATION_CHECKLIST_FILE="$ROOT/global/workflows/global-implementation-checklist.md"
 BLUEPRINT_FILE="$ROOT/global/workflows/global-application-blueprint.md"
-LINKER_FILE="$ROOT/scripts/link_ai_governance.sh"
+BOOTSTRAP_FILE="$ROOT/scripts/bootstrap_link.sh"
+ENSURE_FILE="$ROOT/scripts/ensure_governance_links.sh"
 SKILLS_FILE="$ROOT/global/skills/global-skill-authoring-guidelines.md"
 CODEX_FILE="$ROOT/global/global-codex.md"
 
@@ -30,7 +32,7 @@ require_fixed() {
   local file="$2"
   local message="$3"
 
-  if ! rg -Fq "$needle" "$file"; then
+  if ! rg -Fq -- "$needle" "$file"; then
     echo "FAIL: $message" >&2
     failures=1
   fi
@@ -44,7 +46,7 @@ require_any_fixed() {
   local matched=0
   local needle
   for needle in "$@"; do
-    if rg -Fq "$needle" "$file"; then
+    if rg -Fq -- "$needle" "$file"; then
       matched=1
       break
     fi
@@ -89,8 +91,10 @@ require_file "$OPENCODE_FILE" "missing OpenCode baseline doc"
 require_file "$CURSOR_FILE" "missing Cursor baseline doc"
 require_file "$CURSOR_REFERENCE_FILE" "missing Cursor reference doc"
 require_file "$CORE_GOVERNANCE_FILE" "missing global core governance doc"
+require_file "$ARTIFACT_GOVERNANCE_FILE" "missing global artifact governance doc"
 require_file "$IMPLEMENTATION_CHECKLIST_FILE" "missing implementation checklist doc"
-require_file "$LINKER_FILE" "missing governance linker script"
+require_file "$BOOTSTRAP_FILE" "missing governance bootstrap script"
+require_file "$ENSURE_FILE" "missing governance ensure script"
 require_file "$SKILLS_FILE" "missing skill authoring guidelines"
 require_file "$CODEX_FILE" "missing Codex baseline doc"
 
@@ -116,48 +120,64 @@ if [[ "$failures" -eq 0 ]]; then
   require_any_fixed "$MASTER" "global-MASTER must require CONTEXT bootstrap read" "/docs/CONTEXT.md" "docs/CONTEXT.md"
   require_any_fixed "$MASTER" "global-MASTER must require CONTRIBUTING bootstrap read" "/docs/CONTRIBUTING.md" "docs/CONTRIBUTING.md"
   require_any_fixed "$MASTER" "global-MASTER must require APPLICATION_BLUEPRINT bootstrap read" "/docs/APPLICATION_BLUEPRINT.md" "docs/APPLICATION_BLUEPRINT.md"
+  require_any_fixed "$MASTER" "global-MASTER must require app bootstrap read" "/docs/<appname>.md" "docs/<appname>.md"
 
   # --- Entrypoint compatibility bootstrap doc references ---
   require_any_fixed "$AGENTS_FILE" "global-AGENTS must require CONTEXT bootstrap read" "/docs/CONTEXT.md" "docs/CONTEXT.md"
   require_any_fixed "$AGENTS_FILE" "global-AGENTS must require CONTRIBUTING bootstrap read" "/docs/CONTRIBUTING.md" "docs/CONTRIBUTING.md"
   require_any_fixed "$AGENTS_FILE" "global-AGENTS must require APPLICATION_BLUEPRINT bootstrap read" "/docs/APPLICATION_BLUEPRINT.md" "docs/APPLICATION_BLUEPRINT.md"
+  require_any_fixed "$AGENTS_FILE" "global-AGENTS must require app bootstrap read" "/docs/<appname>.md" "docs/<appname>.md"
 
   require_any_fixed "$CLAUDE_FILE" "global-CLAUDE must require CONTEXT bootstrap read" "@docs/CONTEXT.md" "/docs/CONTEXT.md" "docs/CONTEXT.md"
   require_any_fixed "$CLAUDE_FILE" "global-CLAUDE must require CONTRIBUTING bootstrap read" "@docs/CONTRIBUTING.md" "/docs/CONTRIBUTING.md" "docs/CONTRIBUTING.md"
   require_any_fixed "$CLAUDE_FILE" "global-CLAUDE must require APPLICATION_BLUEPRINT bootstrap read" "@docs/APPLICATION_BLUEPRINT.md" "/docs/APPLICATION_BLUEPRINT.md" "docs/APPLICATION_BLUEPRINT.md"
+  require_any_fixed "$CLAUDE_FILE" "global-CLAUDE must require app bootstrap read" "docs/<appname>.md" "/docs/<appname>.md"
 
   require_any_fixed "$OPENCODE_FILE" "global-opencode must require CONTEXT bootstrap read" "/docs/CONTEXT.md" "docs/CONTEXT.md"
   require_any_fixed "$OPENCODE_FILE" "global-opencode must require CONTRIBUTING bootstrap read" "/docs/CONTRIBUTING.md" "docs/CONTRIBUTING.md"
   require_any_fixed "$OPENCODE_FILE" "global-opencode must require APPLICATION_BLUEPRINT bootstrap read" "/docs/APPLICATION_BLUEPRINT.md" "docs/APPLICATION_BLUEPRINT.md"
+  require_any_fixed "$OPENCODE_FILE" "global-opencode must require app bootstrap read" "/docs/<appname>.md" "docs/<appname>.md"
 
   require_any_fixed "$CURSOR_FILE" "global cursor baseline must require CONTEXT bootstrap read" "/docs/CONTEXT.md" "docs/CONTEXT.md"
   require_any_fixed "$CURSOR_FILE" "global cursor baseline must require CONTRIBUTING bootstrap read" "/docs/CONTRIBUTING.md" "docs/CONTRIBUTING.md"
   require_any_fixed "$CURSOR_FILE" "global cursor baseline must require APPLICATION_BLUEPRINT bootstrap read" "/docs/APPLICATION_BLUEPRINT.md" "docs/APPLICATION_BLUEPRINT.md"
+  require_any_fixed "$CURSOR_FILE" "global cursor baseline must require app bootstrap read" "/docs/<appname>.md" "docs/<appname>.md"
 
   require_any_fixed "$CURSOR_REFERENCE_FILE" "cursor reference must require CONTEXT bootstrap read" "/docs/CONTEXT.md" "docs/CONTEXT.md"
   require_any_fixed "$CURSOR_REFERENCE_FILE" "cursor reference must require CONTRIBUTING bootstrap read" "/docs/CONTRIBUTING.md" "docs/CONTRIBUTING.md"
   require_any_fixed "$CURSOR_REFERENCE_FILE" "cursor reference must require APPLICATION_BLUEPRINT bootstrap read" "/docs/APPLICATION_BLUEPRINT.md" "docs/APPLICATION_BLUEPRINT.md"
+  require_any_fixed "$CURSOR_REFERENCE_FILE" "cursor reference must require app bootstrap read" "/docs/<appname>.md" "docs/<appname>.md"
 
   require_any_fixed "$CODEX_FILE" "global-codex must require CONTEXT bootstrap read" "/docs/CONTEXT.md" "docs/CONTEXT.md"
   require_any_fixed "$CODEX_FILE" "global-codex must require CONTRIBUTING bootstrap read" "/docs/CONTRIBUTING.md" "docs/CONTRIBUTING.md"
   require_any_fixed "$CODEX_FILE" "global-codex must require APPLICATION_BLUEPRINT bootstrap read" "/docs/APPLICATION_BLUEPRINT.md" "docs/APPLICATION_BLUEPRINT.md"
+  require_any_fixed "$CODEX_FILE" "global-codex must require app bootstrap read" "/docs/<appname>.md" "docs/<appname>.md"
 
   require_any_fixed "$CORE_GOVERNANCE_FILE" "core governance must require CONTEXT bootstrap read" "/docs/CONTEXT.md" "docs/CONTEXT.md"
   require_any_fixed "$CORE_GOVERNANCE_FILE" "core governance must require CONTRIBUTING bootstrap read" "/docs/CONTRIBUTING.md" "docs/CONTRIBUTING.md"
   require_any_fixed "$CORE_GOVERNANCE_FILE" "core governance must require APPLICATION_BLUEPRINT bootstrap read" "/docs/APPLICATION_BLUEPRINT.md" "docs/APPLICATION_BLUEPRINT.md"
+  require_any_fixed "$CORE_GOVERNANCE_FILE" "core governance must require app bootstrap read" "/docs/<appname>.md" "docs/<appname>.md"
 
   require_any_fixed "$IMPLEMENTATION_CHECKLIST_FILE" "implementation checklist must require CONTEXT bootstrap read" "/docs/CONTEXT.md" "docs/CONTEXT.md"
   require_any_fixed "$IMPLEMENTATION_CHECKLIST_FILE" "implementation checklist must require CONTRIBUTING bootstrap read" "/docs/CONTRIBUTING.md" "docs/CONTRIBUTING.md"
   require_any_fixed "$IMPLEMENTATION_CHECKLIST_FILE" "implementation checklist must require APPLICATION_BLUEPRINT bootstrap read" "/docs/APPLICATION_BLUEPRINT.md" "docs/APPLICATION_BLUEPRINT.md"
+  require_any_fixed "$IMPLEMENTATION_CHECKLIST_FILE" "implementation checklist must require app bootstrap read" "/docs/<appname>.md" "docs/<appname>.md"
 
-  # --- Linker template checks ---
-  require_fixed "docs/CONTEXT.md" "$LINKER_FILE" "linker must include docs/CONTEXT.md in generated tool context"
-  require_fixed "docs/CONTRIBUTING.md" "$LINKER_FILE" "linker must include docs/CONTRIBUTING.md in generated tool context"
-  require_fixed "docs/APPLICATION_BLUEPRINT.md" "$LINKER_FILE" "linker must include docs/APPLICATION_BLUEPRINT.md in generated tool context"
+  # --- Ensure script checks ---
+  require_fixed "docs/CONTEXT.md" "$ENSURE_FILE" "ensure script must include docs/CONTEXT.md in generated tool context"
+  require_fixed "docs/CONTRIBUTING.md" "$ENSURE_FILE" "ensure script must include docs/CONTRIBUTING.md in generated tool context"
+  require_fixed "docs/APPLICATION_BLUEPRINT.md" "$ENSURE_FILE" "ensure script must include docs/APPLICATION_BLUEPRINT.md in generated tool context"
+  require_any_fixed "$ENSURE_FILE" "ensure script must include app doc in generated tool context" "docs/<appname>.md" "docs/\${project_id}.md" "docs/\${PROJECT_ID}.md"
+  require_fixed "codex.instructions.path" "$ENSURE_FILE" "ensure script must include codex.instructions.path in .vscode/settings.json template"
+  require_fixed "codex.context.include" "$ENSURE_FILE" "ensure script must include codex.context.include in .vscode/settings.json template"
+  require_fixed ".github/copilot-instructions.md" "$ENSURE_FILE" "ensure script must manage the Copilot instructions entrypoint"
+  require_fixed "scripts/link_ai_governance.sh" "$ENSURE_FILE" "ensure script must remove obsolete link_ai_governance.sh"
+  require_fixed "scripts/compile_governance.sh" "$ENSURE_FILE" "ensure script must remove obsolete compile_governance.sh"
 
-  # --- Linker Codex config checks ---
-  require_fixed "codex.instructions.path" "$LINKER_FILE" "linker must include codex.instructions.path in .vscode/settings.json template"
-  require_fixed "codex.context.include" "$LINKER_FILE" "linker must include codex.context.include in .vscode/settings.json template"
+  # --- Bootstrap script checks ---
+  require_fixed "ensure_governance_links.sh" "$BOOTSTRAP_FILE" "bootstrap must invoke ensure_governance_links.sh"
+  require_fixed "--force" "$BOOTSTRAP_FILE" "bootstrap must enforce governance baseline"
+  require_fixed "post-checkout" "$BOOTSTRAP_FILE" "bootstrap must install governance sync hooks"
 
   # --- Entrypoint wrappers must reference MASTER ---
   require_fixed "global-MASTER.md" "$AGENTS_FILE" "global-AGENTS must reference MASTER"
@@ -170,6 +190,12 @@ if [[ "$failures" -eq 0 ]]; then
       "global/workflows/global-application-blueprint.md"
     require_fixed "global-application-blueprint.md" "$ONBOARDING_FILE" "ONBOARDING must describe blueprint usage"
   fi
+
+  # --- README / onboarding flow checks ---
+  require_fixed "bootstrap_link.sh" "$README_FILE" "README must document bootstrap_link.sh"
+  require_fixed "ensure_governance_links.sh" "$README_FILE" "README must document ensure_governance_links.sh"
+  require_fixed "bootstrap_link.sh" "$ONBOARDING_FILE" "ONBOARDING must document bootstrap_link.sh"
+  require_fixed "ensure_governance_links.sh" "$ONBOARDING_FILE" "ONBOARDING must document ensure_governance_links.sh"
 fi
 
 if [[ "$failures" -ne 0 ]]; then

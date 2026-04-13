@@ -1,0 +1,9 @@
+{
+  "name": "central_ai_ops",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "tasks:sync": "bash scripts/generate-todo.sh",
+    "verify:governance": "bash scripts/verify_governance_integrity.sh"
+  }
+}

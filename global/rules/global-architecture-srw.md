@@ -1,6 +1,6 @@
 # Global Architecture: SRW Compliance
 
-All applications developed within this ecosystem MUST adhere to the **Skill, Rules, and Workflow (SRW)** architecture. This paradigm ensures that logic is portable, testable, and maintainable across AI and human contributors.
+All applications developed within this ecosystem must adhere to the **Skill, Rules, and Workflow (SRW)** architecture. This paradigm ensures that logic is portable, testable, maintainable, and structurally consistent across AI and human contributors.
 
 ## 1. Skill (Stateless Execution)
 **Definition**: A Skill is a stateless helper that performs a single, deterministic operation.
@@ -35,6 +35,11 @@ All applications developed within this ecosystem MUST adhere to the **Skill, Rul
 3. **Rule Immutability**:
    - Rules are static policies and should not be modified by Skills or Workflows during runtime.
    - Evaluation of Rules should be handled by Skills or Workflows as pure functions.
+
+4. **Application Compliance**:
+   - Apps should be auditable against SRW boundaries at any time.
+   - New features must preserve SRW boundaries rather than bolting exceptions onto the architecture.
+   - Shared logic should be extracted into the correct SRW layer instead of duplicated across multiple handlers or screens.
 
 ## 5. Violation Checks (Governance)
 

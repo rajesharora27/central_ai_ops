@@ -7,6 +7,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 - Global commands: test, lint, deploy, security-audit, release
+- Global artifact governance rule covering plans, tasks, completed archive, and `docs/TODO.md`
 - Dry-run mode for bootstrap and link scripts (`--dry-run`)
 - Signal handlers for safe script interruption (INT/TERM traps)
 - Ripgrep dependency check in verification script
@@ -25,3 +26,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Changed
 - Skill authoring guidelines expanded from 4 bullets to comprehensive guide with definition, structure, rules, testing, naming, and anti-patterns
 - MASTER load order now has 6 steps (added step 4 for skills)
+- Governance script surface simplified to two user-facing scripts: `bootstrap_link.sh` and `ensure_governance_links.sh`
+- `ensure_governance_links.sh` now owns the full governance sync logic and is safe by default
+- README and onboarding docs rewritten around the simplified governance model and rule inventory
+- Canonical governance now explicitly requires task-hub preflight, feature-unit tests plus integration updates as needed, deploy blocking on failed validation, reuse-first implementation, and user-flow verification
+- Task-hub tooling now standardizes on `docs/TODO.md` instead of `docs/ToDo.md`
+
+### Removed
+- `scripts/link_ai_governance.sh`
+- `scripts/compile_governance.sh`

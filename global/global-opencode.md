@@ -6,7 +6,9 @@ Context bootstrap requirement (when present in repo):
 - `docs/CONTEXT.md`
 - `docs/CONTRIBUTING.md`
 - `docs/APPLICATION_BLUEPRINT.md`
+- `docs/<appname>.md` where `<appname>` matches the repository or app-folder name
 - Read these at agent startup and on every context refresh.
+- Before closing a task, update every impacted project doc in this canonical set.
 
 Load order:
 1. `.ai_ops/global/global-MASTER.md`

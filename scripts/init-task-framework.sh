@@ -8,8 +8,8 @@ echo "🚀 Initializing Task Framework in $(pwd)..."
 mkdir -p docs/tasks/completed docs/plans
 echo "✅ Created directories: docs/tasks/completed, docs/plans"
 
-# 2. Create foundational ToDo.md if missing
-TODO_FILE="docs/ToDo.md"
+# 2. Create foundational TODO.md if missing
+TODO_FILE="docs/TODO.md"
 if [ ! -f "$TODO_FILE" ]; then
   cat << 'EOF' > "$TODO_FILE"
 # Task Hub
@@ -20,9 +20,9 @@ if [ ! -f "$TODO_FILE" ]; then
 ## Included Files
 No active tasks yet. Start by generating a task inside `docs/tasks/`.
 EOF
-  echo "✅ Created baseline docs/ToDo.md"
+  echo "✅ Created baseline docs/TODO.md"
 else
-  echo "ℹ️ docs/ToDo.md already exists. Skipping creation."
+  echo "ℹ️ docs/TODO.md already exists. Skipping creation."
 fi
 
 # 3. Inject standard package.json script

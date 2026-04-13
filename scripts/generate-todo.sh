@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # generate-todo.sh
-# Generates docs/ToDo.md from task file frontmatter.
+# Generates docs/TODO.md from task file frontmatter.
 # Assumes run from project root: bash ../central_ai_ops/scripts/generate-todo.sh
 
-echo "Generating docs/ToDo.md..."
+echo "Generating docs/TODO.md..."
 
-OUT="docs/ToDo.md"
+OUT="docs/TODO.md"
 TMP_ACTIVE=$(mktemp)
 TMP_BACKLOG=$(mktemp)
 TMP_DONE=$(mktemp)
@@ -121,7 +121,7 @@ if [ -s "$TMP_BACKLOG" ]; then
 fi
 
 if [ -s "$TMP_DONE" ]; then
-    echo "## Recently Completed" >> "$OUT"
+    echo "## Completed" >> "$OUT"
     echo "" >> "$OUT"
     # Sort reverse alphabetically (by date desc), take top 15
     sort -r "$TMP_DONE" | head -n 15 | sed 's/^.* | //' >> "$OUT"
@@ -132,4 +132,4 @@ echo "---" >> "$OUT"
 echo "*Generated $(date '+%Y-%m-%d')*" >> "$OUT"
 
 rm "$TMP_ACTIVE" "$TMP_BACKLOG" "$TMP_DONE" "$TMP_PLANS"
-echo "✅ Generated docs/ToDo.md"
+echo "✅ Generated docs/TODO.md"

@@ -6,17 +6,15 @@ usage() {
   cat <<'USAGE'
 Usage: scripts/bootstrap_link.sh [--project-source PATH] [--dry-run] /path/to/project/repo [more repos...]
 
-Bootstraps layered AI ops for each project repo:
+Bootstrap governance for a new project repo.
+
+This script is the first-time setup path:
 - sets ai.opsRoot and ai.governanceRoot git config keys
 - optionally sets ai.projectSource for cross-clone project override sync
-- installs auto-sync git hooks (.githooks/post-checkout|post-merge|post-rewrite)
-- links global baseline from central_ai_ops
-- links AGENTS.md / CLAUDE.md / .cursorrules / GEMINI.md to `.ai_ops/global/global-MASTER.md`
-- configures Codex via `.vscode/settings.json` (codex.instructions.path, codex.context.include)
-- seeds tool context include paths with docs bootstrap files:
-  `docs/CONTEXT.md`, `docs/CONTRIBUTING.md`, `docs/APPLICATION_BLUEPRINT.md`
-- scaffolds `.ai_ops/overrides/local-context.md`, or links overrides from project-source
-- links global command packs and scaffolds project command packs
+- installs safe auto-sync git hooks (.githooks/post-checkout|post-merge|post-rewrite)
+- enforces the governance baseline by running ensure_governance_links.sh in force mode
+
+Use scripts/ensure_governance_links.sh afterward for safe anytime syncs.
 USAGE
 }
 
@@ -51,7 +49,7 @@ if [[ ${#TARGETS[@]} -lt 1 ]]; then
 fi
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-LINKER="$ROOT/scripts/link_ai_governance.sh"
+ENSURE_SCRIPT="$ROOT/scripts/ensure_governance_links.sh"
 PROJECT_SOURCE_REAL=""
 
 if [[ -n "$PROJECT_SOURCE_INPUT" ]]; then
@@ -62,8 +60,8 @@ if [[ -n "$PROJECT_SOURCE_INPUT" ]]; then
   PROJECT_SOURCE_REAL="$(cd "$PROJECT_SOURCE_INPUT" && pwd)"
 fi
 
-if [[ ! -x "$LINKER" ]]; then
-  echo "Missing linker: $LINKER" >&2
+if [[ ! -x "$ENSURE_SCRIPT" ]]; then
+  echo "Missing governance ensure script: $ENSURE_SCRIPT" >&2
   exit 1
 fi
 if [[ ! -f "$ROOT/global/global-MASTER.md" ]]; then
@@ -89,43 +87,10 @@ install_hook() {
 #!/usr/bin/env bash
 set -euo pipefail
 if [[ -x scripts/ensure_governance_links.sh ]]; then
-  AI_OPS_QUIET=1 AI_OPS_FORCE=1 bash scripts/ensure_governance_links.sh || true
+  AI_OPS_QUIET=1 AI_OPS_MISSING_ONLY=1 bash scripts/ensure_governance_links.sh || true
 fi
 HOOK
   chmod +x "$hook_path"
-}
-
-enforce_master_entrypoints() {
-  local target_repo="$1"
-  local timestamp
-  local master_file="$target_repo/.ai_ops/global/global-MASTER.md"
-  timestamp="$(date +%Y%m%d%H%M%S)"
-
-  if [[ ! -f "$master_file" ]]; then
-    echo "Warning: missing master baseline file: $master_file" >&2
-    return
-  fi
-
-  for entry in AGENTS.md CLAUDE.md .cursorrules GEMINI.md; do
-    local target_path="$target_repo/$entry"
-    local current_target=""
-
-    if [[ -L "$target_path" ]]; then
-      current_target="$(readlink "$target_path")"
-      if [[ "$current_target" == "$master_file" ]]; then
-        echo "OK linked: $target_path -> $master_file"
-        continue
-      fi
-    fi
-
-    if [[ -e "$target_path" || -L "$target_path" ]]; then
-      mv "$target_path" "${target_path}.bak.${timestamp}"
-      echo "Backed up: $target_path -> ${target_path}.bak.${timestamp}"
-    fi
-
-    ln -s "$master_file" "$target_path"
-    echo "Linked: $target_path -> $master_file"
-  done
 }
 
 for TARGET in "${TARGETS[@]}"; do
@@ -136,7 +101,7 @@ for TARGET in "${TARGETS[@]}"; do
 
   TARGET_REAL="$(cd "$TARGET" && pwd)"
   echo
-  echo "Bootstrapping layered AI ops: $TARGET_REAL"
+  echo "Bootstrapping governance in: $TARGET_REAL"
 
   if git -C "$TARGET_REAL" rev-parse --git-dir >/dev/null 2>&1; then
     if [[ "$DRY_RUN" -eq 1 ]]; then
@@ -164,18 +129,15 @@ for TARGET in "${TARGETS[@]}"; do
     echo "Warning: $TARGET_REAL is not a git repo (skipping git config)"
   fi
 
-  LINK_ARGS=(--source "$ROOT" --project "$TARGET_REAL" --force)
+  ENSURE_ARGS=(--source "$ROOT" --project "$TARGET_REAL" --force)
   if [[ -n "$PROJECT_SOURCE_REAL" ]]; then
-    LINK_ARGS+=(--project-source "$PROJECT_SOURCE_REAL")
+    ENSURE_ARGS+=(--project-source "$PROJECT_SOURCE_REAL")
   fi
   if [[ "$DRY_RUN" -eq 1 ]]; then
-    LINK_ARGS+=(--dry-run)
+    ENSURE_ARGS+=(--dry-run)
   fi
 
-  "$LINKER" "${LINK_ARGS[@]}"
-  if [[ "$DRY_RUN" -eq 0 ]]; then
-    enforce_master_entrypoints "$TARGET_REAL"
-  fi
+  bash "$ENSURE_SCRIPT" "${ENSURE_ARGS[@]}"
 done
 
 echo
