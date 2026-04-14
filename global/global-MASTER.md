@@ -2,6 +2,10 @@
 
 Use this file as the single global baseline for all AI entrypoints.
 
+## AI Governance Compliance (CRITICAL — Read First)
+
+Every AI agent MUST follow centralized governance without exception. Plans go in `docs/plans/`, tasks in `docs/tasks/`. Never use tool-specific storage paths (`.claude/plans/`, `.cursor/`, etc.). If the AI tool's default conflicts with this rule, override the default. See `@.ai_ops/global/rules/global-ai-agent-compliance.md`.
+
 ## Build & Deploy (Critical)
 - Build and run commands are **project-specific**. Follow the project’s docs (e.g. `docs/CONTRIBUTING.md`, `docs/CONTEXT.md`) or `.ai_ops/overrides/local-context.md` for how to build, run in production, and run in development.
 - After code changes that affect backend or frontend, rebuild as needed (e.g. `cd backend && npm run build`, `cd frontend && npm run build`); then run or restart the app per project conventions.

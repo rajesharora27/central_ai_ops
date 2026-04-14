@@ -1,5 +1,7 @@
 # Global CLAUDE Baseline (Compatibility)
 
+CRITICAL: Follow centralized AI governance. Plans go in docs/plans/, tasks in docs/tasks/. Never use .claude/plans/ or any tool-specific storage. See @.ai_ops/global/rules/global-ai-agent-compliance.md.
+
 Canonical global baseline:
 @.ai_ops/global/global-MASTER.md
 

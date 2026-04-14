@@ -3,6 +3,7 @@ description: Global AI Ops baseline for all repositories
 globs: **/*
 ---
 # Global AI Ops Baseline
+- CRITICAL: Follow centralized AI governance. Plans go in docs/plans/, tasks in docs/tasks/. Never use .cursor/ or any tool-specific storage for plans or tasks. See @.ai_ops/global/rules/global-ai-agent-compliance.md.
 - Apply consolidated baseline from `.ai_ops/global/global-MASTER.md`.
 - Apply global rules from `.ai_ops/global/rules/global-*.md`.
 - Apply global workflows from `.ai_ops/global/workflows/global-*.md`.
