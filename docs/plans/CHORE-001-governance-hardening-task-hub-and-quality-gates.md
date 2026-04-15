@@ -6,7 +6,7 @@ status: in_progress
 depends_on: []
 blocks: []
 created: 2026-04-13
-updated: 2026-04-13
+updated: 2026-04-14
 ---
 
 # Plan: Governance Hardening For Task Hub And Quality Gates
@@ -25,7 +25,7 @@ Strengthen the canonical `central_ai_ops` governance so downstream projects inhe
 
 - update canonical global rule, workflow, and command docs
 - add the missing artifact-governance rule file referenced by downstream repos
-- align task-framework scripts with the canonical `docs/TODO.md` convention
+- align task-framework scripts with the canonical `docs/TODO.md` convention, inferred plan trails, and richer relationship links
 - refresh central repo docs/changelog so maintainers understand the new requirements
 
 ## Target Files

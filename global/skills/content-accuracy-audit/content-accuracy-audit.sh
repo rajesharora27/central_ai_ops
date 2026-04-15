@@ -4,7 +4,7 @@ set -euo pipefail
 # Content Accuracy Audit — portable wrapper.
 # Invokes the project's audit backend (edge function or local script).
 
-SCOPE="user"
+SCOPE="random"
 USER_ID=""
 USER_IDS=""
 COUNT=5
@@ -76,7 +76,7 @@ if [[ -n "$SUPABASE_URL" && -n "$SERVICE_KEY" ]]; then
     -H "Authorization: Bearer ${SERVICE_KEY}" \
     -H "apikey: ${SERVICE_KEY}" \
     -H "Content-Type: application/json" \
-    -d "{\"action\":\"audit.content_accuracy\",\"payload\":$PAYLOAD}")
+    -d "{\"action\":\"admin.audit.run\",\"payload\":$PAYLOAD}")
 
   if [[ "$OUTPUT" == "json" ]]; then
     echo "$RESPONSE"

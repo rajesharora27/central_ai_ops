@@ -74,6 +74,7 @@ Governed projects should maintain:
 These are the canonical project docs referenced by `.ai_ops/overrides/local-context.md`.
 The baseline template for `docs/APPLICATION_BLUEPRINT.md` lives at `global/workflows/global-application-blueprint.md`.
 Repo-changing work should also follow the task-hub convention: `docs/plans/`, `docs/tasks/`, `docs/tasks/completed/`, and generated `docs/TODO.md`.
+Use `related:` in task or plan frontmatter when follow-up work belongs to the same delivery track but is not a blocking dependency; the generated hub renders those relationships directly and also infers same-plan trails from shared `plan:` metadata.
 For AI-enabled products, the global rule set also expects explicit evaluation coverage, provider/runtime portability, AI observability, rollout control, async retry/rate-limit discipline, safety constraints, output contracts, provenance boundaries, context hygiene, privacy-aware retention behavior, incident readiness, environment parity, user-visible reliability, and migration safety.
 
 ## Hook-Based Sync

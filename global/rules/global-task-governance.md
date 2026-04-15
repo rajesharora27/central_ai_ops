@@ -65,6 +65,7 @@ type: feat          # feat | fix | chore
 status: in_progress # planned | in_progress | done | backlog
 priority: high      # high | medium | low
 depends_on: []      # list of task IDs this depends on
+related: []         # optional list of sibling/follow-up task IDs
 plan: plan-name.md  # required for repo-changing implementation work
 created: 2026-03-30
 updated: 2026-03-30
@@ -102,6 +103,17 @@ When a task is finished:
 ### 9. Plans
 
 Plans live in `docs/plans/` and are linked from the task's `plan:` frontmatter field. For repo-changing implementation work, a plan is mandatory. Plans describe the "how"; tasks describe the "what".
+
+### 10. Related Work Links
+
+- Use `related:` when a task is directly connected to another task but is not a strict dependency.
+- The task hub should also infer same-plan trails automatically from shared `plan:` metadata so older work stays linked even before explicit backfill.
+- Typical cases:
+  - follow-up fixes for a shipped feature
+  - patch tasks that refine the same user-facing rollout
+  - sibling chores that complete the same governance or release track
+- Keep `depends_on:` for blocking prerequisites and `related:` for navigational context.
+- Plans may also include `related:` so the task hub can show the same relationship from the plan side.
 
 ## Rules for AI Agents
 

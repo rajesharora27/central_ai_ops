@@ -45,6 +45,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - `ensure_governance_links.sh` now owns the full governance sync logic and is safe by default
 - README and onboarding docs rewritten around the simplified governance model and rule inventory
 - Canonical governance now explicitly requires task-hub preflight, feature-unit tests plus integration updates as needed, deploy blocking on failed validation, reuse-first implementation, and user-flow verification
+- Canonical task-hub metadata now supports optional `related` links, and generated `docs/TODO.md` hubs also infer plan trails from shared `plan:` metadata so older work stays navigable without manual backfill
 - Canonical governance now also requires AI evaluation coverage, provider/runtime portability, AI observability, rollout control, and scale-safe async retry discipline for AI workloads
 - Canonical governance now also requires AI safety controls, output contracts, provenance boundaries, context hygiene, and privacy-aware retention/deletion expectations for AI workloads
 - Canonical governance now also requires incident readiness, performance/cost discipline, environment parity, user-visible reliability, and schema/migration safety expectations

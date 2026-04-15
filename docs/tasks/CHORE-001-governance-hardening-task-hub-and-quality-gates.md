@@ -7,7 +7,7 @@ priority: high
 depends_on: []
 plan: CHORE-001-governance-hardening-task-hub-and-quality-gates.md
 created: 2026-04-13
-updated: 2026-04-13
+updated: 2026-04-14
 ---
 
 # CHORE-001: Governance Hardening For Task Hub And Quality Gates
@@ -20,6 +20,7 @@ Ensure `central_ai_ops` explicitly enforces the requested global governance expe
 
 - All governed repositories inherit clearer preflight and completion rules.
 - Task-hub generation aligns on `docs/TODO.md`.
+- Task hubs can cross-link plans and related follow-up tasks directly from generated output.
 - Deployment guidance blocks shipping when tests fail.
 - Quality rules explicitly require unit tests, integration updates as needed, user-functional verification, reuse-first implementation, and formatting/readability.
 
@@ -50,6 +51,7 @@ Ensure `central_ai_ops` explicitly enforces the requested global governance expe
 - [ ] Global rules explicitly require plan + task set + TODO sync before repo changes.
 - [ ] Task completion explicitly requires moving task files into `docs/tasks/completed/`.
 - [ ] Canonical task-hub tooling writes `docs/TODO.md`.
+- [ ] Canonical task-hub tooling links task -> plan, infers same-plan trails, and renders optional `related` sibling work.
 - [ ] Feature work explicitly requires unit tests and integration updates as needed.
 - [ ] Deploy guidance explicitly blocks deployment when validation fails.
 - [ ] Reuse-first, low-redundancy, readable/formatted code expectations are stated globally.
