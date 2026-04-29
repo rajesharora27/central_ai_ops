@@ -29,9 +29,24 @@ Every AI agent — regardless of vendor, IDE, or runtime — MUST follow central
 1. Check `docs/plans/` for an existing plan covering the request.
 2. Check `docs/tasks/` for existing tasks.
 3. Create or update plan and tasks in the governed locations.
-4. Run `npm run tasks:sync`.
+4. Run `npm run tasks:sync` (or `bash .agent/skills/global/task-hub-sync/task-hub-sync.sh sync`).
 5. Only then begin implementation.
+
+## After Completing a Task
+
+1. Set `status: done` and update `updated` date in the task frontmatter.
+2. Move the task file from `docs/tasks/` to `docs/tasks/completed/`.
+3. Run `bash .agent/skills/global/task-hub-sync/task-hub-sync.sh sync` to regenerate `docs/TODO.md`.
+4. Alternatively, use `bash .agent/skills/global/task-hub-sync/task-hub-sync.sh complete --task-id FEAT-042` to do all three steps at once.
+
+## Task Hub Integrity
+
+Run `bash .agent/skills/global/task-hub-sync/task-hub-sync.sh validate` periodically to check for:
+- Done tasks still in `docs/tasks/` (should be in `completed/`)
+- Broken plan references
+- Missing frontmatter
+- Non-standard status values
 
 ## Violations
 
-An AI agent that stores plans in tool-specific directories, skips task creation, or ignores the load order is in governance violation. The agent must self-correct immediately when it detects it has violated these rules.
+An AI agent that stores plans in tool-specific directories, skips task creation, ignores the load order, or leaves done tasks unarchived is in governance violation. The agent must self-correct immediately when it detects it has violated these rules.

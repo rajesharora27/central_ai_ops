@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ -x scripts/ensure_governance_links.sh ]]; then
+  AI_OPS_QUIET=1 AI_OPS_MISSING_ONLY=1 bash scripts/ensure_governance_links.sh || true
+fi

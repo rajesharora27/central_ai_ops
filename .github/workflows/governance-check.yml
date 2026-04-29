@@ -1,0 +1,23 @@
+name: Governance Compliance Check
+on: [pull_request]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install CLI
+        run: cd cli && npm install && npm run build
+
+      - name: Verify Governance Compliance
+        run: |
+          node cli/dist/index.js verify \
+            --project ${{ github.event.repository.name }} \
+            --api-url ${{ secrets.GOVERNANCE_API_URL }} \
+            --api-key ${{ secrets.GOVERNANCE_API_KEY }} \
+            --strict

@@ -164,6 +164,37 @@ scripts/bootstrap_link.sh \
   /path/to/ide/clone
 ```
 
+## Governance Management Application
+
+This repo includes a web application for managing governance artifacts through a graphical interface, enforcing compliance across projects, and authoring new rules with AI assistance.
+
+```bash
+# Install dependencies (first time)
+./aiops.sh install
+
+# Start the full application (database + backend + frontend)
+./aiops.sh start
+
+# Development mode with hot reload
+./aiops.sh dev
+
+# Check status of all services
+./aiops.sh status
+
+# Stop everything
+./aiops.sh stop
+```
+
+The application provides:
+- **CRUD for artifacts** — create, view, edit, delete rules/skills/workflows with a markdown editor
+- **Environment targeting** — select which AI environments (Claude, Codex, Cursor, OpenCode, Agents) each artifact applies to
+- **Project management** — register projects, assign artifacts, verify compliance
+- **AI-assisted authoring** — describe what you want in natural language, Claude generates the governance markdown
+- **Enforcement chain** — REST API for CI gates, CLI tool for pre-commit hooks, compliance dashboard for visibility
+- **Audit log** — every governance action is tracked
+
+See [docs/GOVERNANCE_APP.md](docs/GOVERNANCE_APP.md) for full documentation including API reference, CLI usage, CI integration, and architecture details.
+
 ## Governance Maintenance
 
 When you change files under `global/`:

@@ -4,6 +4,13 @@
   "version": "1.0.0",
   "scripts": {
     "tasks:sync": "bash scripts/generate-todo.sh",
-    "verify:governance": "bash scripts/verify_governance_integrity.sh"
+    "verify:governance": "bash scripts/verify_governance_integrity.sh",
+    "app:install": "cd app/backend && npm install && cd ../frontend && npm install && cd ../../cli && npm install",
+    "app:dev:backend": "cd app/backend && npm run dev",
+    "app:dev:frontend": "cd app/frontend && npm run dev",
+    "app:build:backend": "cd app/backend && npm run build",
+    "app:build:frontend": "cd app/frontend && npm run build",
+    "app:build": "npm run app:build:backend && npm run app:build:frontend",
+    "cli:build": "cd cli && npm run build"
   }
 }

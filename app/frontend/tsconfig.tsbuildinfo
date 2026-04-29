@@ -1,0 +1,1 @@
+{"root":["./src/main.tsx","./src/features/auth/components/loginpage.tsx","./src/features/auth/hooks/useauth.tsx","./src/pages/app.tsx","./src/pages/artifactspage.tsx","./src/pages/auditpage.tsx","./src/pages/dashboardpage.tsx","./src/pages/projectspage.tsx","./src/providers/apolloclientprovider.tsx","./src/theme/themeprovider.tsx"],"version":"5.9.3"}

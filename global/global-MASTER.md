@@ -29,6 +29,7 @@ Every AI agent MUST follow centralized governance without exception. Plans go in
 - Require incident readiness, not just implementation completeness. High-risk behaviors need recovery paths, operational ownership, and believable rollback/disablement strategies.
 - Manage performance, cost, and parity deliberately. AI features should have explicit budget expectations and should not rely on hidden environment drift.
 - Treat user-visible reliability and migration safety as global governance concerns. A passing backend is not enough if the UX strands users or the schema rollout is brittle.
+- Follow the navigation architecture in `@.ai_ops/global/rules/global-navigation-governance.md`. Every screen has exactly one owning tab; back pops within the local Stack only; admin is a separate peer navigator. Never use `router.back()` or custom `headerLeft` back logic.
 - Verify features from the user's perspective, not only from the implementation layer. A technically passing change that breaks the real user flow is not complete.
 - Reuse existing code first. Avoid redundant logic, collapse duplication into shared modules/services where appropriate, and keep code simple, readable, and formatted.
 - Keep command playbooks portable: global commands provide shared defaults, project commands provide local overrides.
@@ -73,3 +74,23 @@ Project-local context and project runtime policy override global policy on confl
 @.ai_ops/global/commands/*.md
 @.ai_ops/global/skills/global-*.md
 @.ai_ops/overrides/local-context.md
+
+## Context Efficiency
+
+When context fills above 70%, use `/compact` to free space. After compacting, invoke the codebase overview skill to reload project orientation instead of re-reading source files.
+
+### Available Skills
+
+- Codebase overview — quick-load Vigo architecture map (`.agent/skills/project/codebase-overview/SKILL.md`)
+- PR review — structured review with SRW, migration, and doc-sync checks
+- DB migration — safe Supabase migration playbook (NEVER `supabase db reset`)
+
+### Test Output
+
+Test output is automatically filtered to show only failures and summary lines. Request full output explicitly if needed.
+
+### Model Guidance
+
+- Default: Sonnet for most tasks
+- Opus: complex architecture, multi-file refactors, hard debugging
+- Haiku: simple lookups, formatting, renaming (explorer subagent uses this automatically)
